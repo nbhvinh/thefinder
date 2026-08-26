@@ -2,6 +2,11 @@ package com.nbhv.thefinder.entity;
 
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 
 @Entity
 @Table(name = "users")
