@@ -1,6 +1,6 @@
 # The Finder
 
-*(Dự án hiện tại đang ở phase 2 và đang tiếp tục được phát triển)*
+*(Dự án hiện tại cập nhật ở phase 2 và đang tiếp tục được phát triển)*
 
 Backend REST API cho nền tảng hỗ trợ đăng tin **mất đồ**, **tìm thấy đồ** và **bị trộm**. Người dùng có thể đăng ký, đăng nhập, tạo bài đăng, tìm kiếm/lọc bài đăng và tải ảnh minh hoạ cho bài viết.
 
