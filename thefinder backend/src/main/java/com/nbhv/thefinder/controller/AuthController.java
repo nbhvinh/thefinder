@@ -1,7 +1,10 @@
 package com.nbhv.thefinder.controller;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,7 +52,24 @@ public class AuthController {
             return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
         }
         session.setAttribute("userId", user.getId());
-        return ResponseEntity.ok().body("Đăng nhập thành công");
+        return ResponseEntity.ok(Map.of(
+                "id", user.getId(),
+                "fullName", user.getFullName(),
+                "email", user.getEmail()));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body("Chưa đăng nhập");
+        }
+        return userRepo.findById(userId)
+                .<ResponseEntity<?>>map(user -> ResponseEntity.ok(Map.of(
+                        "id", user.getId(),
+                        "fullName", user.getFullName(),
+                        "email", user.getEmail())))
+                .orElseGet(() -> ResponseEntity.status(401).body("Phiên đăng nhập không hợp lệ"));
     }
 
     @PostMapping("/logout")

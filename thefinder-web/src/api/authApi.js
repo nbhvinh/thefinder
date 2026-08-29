@@ -11,3 +11,7 @@ export function register(payload) {
 export function logout() {
   return axiosClient.post('/auth/logout');
 }
+
+export function getCurrentUser() {
+  return axiosClient.get('/auth/me');
+}

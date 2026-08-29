@@ -3,6 +3,7 @@ package com.nbhv.thefinder.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,6 +23,6 @@ public class CategoryController {
 
     @GetMapping
     public ResponseEntity<List<Category>> getAll() {
-        return ResponseEntity.ok(categoryRepo.findAll());
+        return ResponseEntity.ok(categoryRepo.findAll(Sort.by(Sort.Direction.ASC, "id")));
     }
 }

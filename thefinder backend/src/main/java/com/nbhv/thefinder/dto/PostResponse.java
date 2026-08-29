@@ -19,6 +19,7 @@ public class PostResponse {
     private PostStatus status;
     private String location;
     private OffsetDateTime eventTime;
+    private String contactInfo;
     private String authorName;
     private String categoryName;
     private OffsetDateTime createdAt;
@@ -33,6 +34,7 @@ public class PostResponse {
         r.status = p.getStatus();
         r.location = p.getLocation();
         r.eventTime = p.getEventTime();
+        r.contactInfo = p.getContactInfo();
         r.authorName = p.getUser().getFullName();
         r.categoryName = p.getCategory() != null ? p.getCategory().getName() : null;
         r.createdAt = p.getCreatedAt();
