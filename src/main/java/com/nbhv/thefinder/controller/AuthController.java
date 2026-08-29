@@ -29,24 +29,24 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest req) {
-        if (userRepo.findByEmail(req.getEmail()).isPresent()) {
+        String email = req.getEmail().trim().toLowerCase();
+        if (userRepo.findByEmail(email).isPresent()) {
             return ResponseEntity.badRequest().body("Email đã được sử dụng");
         }
         User user = new User();
-        user.setEmail(req.getEmail());
+        user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(req.getPassword()));
-        user.setFullName(req.getFullName());
-        user.setPhone(req.getPhone());
+        user.setFullName(req.getFullName().trim());
+        user.setPhone(req.getPhone() == null || req.getPhone().isBlank() ? null : req.getPhone().trim());
         userRepo.save(user);
         return ResponseEntity.ok().body("Đăng ký thành công");
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req, HttpSession session) {
-        User user = userRepo.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Sai email hoặc mật khẩu"));
-        if (!passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Sai email hoặc mật khẩu");
+        User user = userRepo.findByEmail(req.getEmail().trim().toLowerCase()).orElse(null);
+        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
+            return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
         }
         session.setAttribute("userId", user.getId());
         return ResponseEntity.ok().body("Đăng nhập thành công");

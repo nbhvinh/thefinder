@@ -1,0 +1,6 @@
+import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
+import PrivatePostList from '../../components/post/PrivatePostList';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import RecentEventsBar from '../../components/post/RecentEventsBar';
+export default function FoundPage() { const navigate = useNavigate(); const [categoryId, setCategoryId] = useState(null); return <div className="min-h-screen bg-white"><AuthenticatedNavigation /><section className="relative grid min-h-80 place-items-center overflow-hidden px-4 text-center text-white"><div className="absolute inset-0 bg-[linear-gradient(#00000066,#00000066),url('/assets/anima/public-home/menu.png')] bg-cover bg-center" /><div className="relative"><h1 className="text-3xl md:text-4xl">Bạn mất thứ gì à?<br />Cùng cộng đồng tìm lại nhé</h1><button onClick={() => navigate('/posts/create/lost')} className="mt-8 h-[67px] w-[280px] rounded-[30px] bg-[#237596] text-2xl text-white">Tìm lại đồ</button></div></section><RecentEventsBar headingId="recent-found-heading" selectedId={categoryId} onChange={setCategoryId} /><PrivatePostList type="FOUND" categoryId={categoryId} /></div>; }

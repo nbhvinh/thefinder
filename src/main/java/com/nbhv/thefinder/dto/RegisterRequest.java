@@ -13,7 +13,7 @@ public class RegisterRequest {
     @Email @NotBlank
     private String email;
 
-    @NotBlank @Size(min = 8, message = "Mật khẩu tối thiểu 8 ký tự")
+    @NotBlank @Size(min = 4, message = "Mật khẩu tối thiểu 4 ký tự")
     private String password;
 
     @NotBlank

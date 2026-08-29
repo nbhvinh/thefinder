@@ -1,0 +1,6 @@
+Ảnh cần thiết trong các đường link:
+
+thefinder-web/public/assets/anima/public-home/rectangle-1.png
+thefinder-web/public/assets/anima/public-home/image.png
+thefinder-web/public/assets/anima/public-home/logo.png
+thefinder-web/public/assets/anima/public-home/logo-2.png

@@ -1,0 +1,11 @@
+import { MessageCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import BrandLogo from './BrandLogo';
+
+const navigationItems = [{ label: 'Trang chủ', to: '/' }, { label: 'Đồ bị mất', to: '/lost' }, { label: 'Đồ trả lại', to: '/found' }, { label: 'Báo cáo trộm cắp', to: '/stolen', disabled: true }];
+export default function PublicNavigation() {
+  const [searchQuery, setSearchQuery] = useState(''); const navigate = useNavigate();
+  const search = (event) => { event.preventDefault(); if (searchQuery.trim()) navigate(`/?keyword=${encodeURIComponent(searchQuery.trim())}`); };
+  return <header className="sticky top-0 z-50 h-[74px] w-full bg-[#e9e9e9] px-4"><div className="mx-auto flex h-full max-w-[1280px] items-center justify-between gap-5"><div className="flex items-center gap-4"><Link to="/" aria-label="TheFinder - Trang chủ" className="flex items-center gap-2 whitespace-nowrap"><BrandLogo /><span className="text-xl text-black">TheFinder</span></Link><form className="hidden sm:block" role="search" onSubmit={search}><label htmlFor="site-search" className="sr-only">Tìm kiếm đồ thất lạc</label><input id="site-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="🔍 Tìm kiếm (ví, giấy, ...)" className="h-8 w-[180px] rounded-[20px] border border-[#1882ac] bg-[#edecec] px-4 text-sm outline-none placeholder:text-[#00000066]" /></form></div><nav aria-label="Điều hướng chính" className="hidden lg:block"><ul className="flex items-center gap-[18px]">{navigationItems.map((item) => <li key={item.to}>{item.disabled ? <span aria-disabled="true" className="cursor-not-allowed text-[15px] text-black/40" title="Tính năng đang tạm khóa">{item.label}</span> : <Link to={item.to} className="text-[15px] text-black hover:text-[#237596]">{item.label}</Link>}</li>)}</ul></nav><div className="flex items-center gap-5"><button type="button" aria-label="Mở tin nhắn" className="grid h-9 w-9 place-items-center text-[#237596]"><MessageCircle size={30} /></button><Link to="/sign-in" className="flex h-10 w-[143px] items-center justify-center rounded-[30px] bg-[#237596] text-[15px] text-white hover:bg-[#185d79]">Đăng nhập</Link></div></div></header>;
+}
