@@ -4,6 +4,7 @@ import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNa
 import { getCurrentUser } from '../../api/authApi';
 import { getMyClaims } from '../../api/claimApi';
 import { getMyPosts, getPost, getPosts } from '../../api/postApi';
+import { resolveApiAssetUrl } from '../../config/api';
 
 const filters = [
   { value: 'ALL', label: 'Tất cả' },
@@ -26,8 +27,7 @@ function formatDate(value) {
 
 function imageUrl(post) {
   const url = post.images?.[0]?.url;
-  if (!url) return null;
-  return url.startsWith('http') ? url : `http://localhost:8080${url}`;
+  return resolveApiAssetUrl(url);
 }
 
 function ProfilePostCard({ post, manageable = true }) {

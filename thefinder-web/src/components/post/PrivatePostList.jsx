@@ -4,10 +4,11 @@ import HomePostCard from './HomePostCard';
 import { getPosts } from '../../api/postApi';
 import { getCurrentUser } from '../../api/authApi';
 import { getMyClaims } from '../../api/claimApi';
+import { resolveApiAssetUrl } from '../../config/api';
 
 function mapPost(post) {
   const imageUrls = (post.images ?? [])
-    .map(({ url }) => !url ? null : url.startsWith('http') ? url : `http://localhost:8080${url}`)
+    .map(({ url }) => resolveApiAssetUrl(url))
     .filter(Boolean);
   return { id: post.id, title: post.title, type: post.type, tag: post.categoryName, description: post.description, location: post.location, eventTime: post.eventTime, contactInfo: post.contactInfo, createdAt: post.createdAt, authorId: post.authorId, author: post.authorName, status: post.status, imageUrls };
 }

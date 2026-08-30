@@ -1,7 +1,7 @@
 import ClaimStatusBadge from './ClaimStatusBadge';
+import { resolveApiAssetUrl } from '../../config/api';
 
-const imageBaseUrl = 'http://localhost:8080';
-const imageUrl = (url) => url?.startsWith('http') ? url : `${imageBaseUrl}${url}`;
+const imageUrl = resolveApiAssetUrl;
 
 function formatDate(value) {
   if (!value) return 'Chưa cung cấp';
