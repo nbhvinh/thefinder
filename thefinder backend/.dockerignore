@@ -1,0 +1,8 @@
+target/
+uploads/
+.git/
+.vscode/
+.DS_Store
+HELP.md
+phase0-schema-setup.md
+mvnw.cmd
