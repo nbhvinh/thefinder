@@ -8,8 +8,10 @@ export default function HomePage() {
   const [searchParams] = useSearchParams();
   const [categoryId, setCategoryId] = useState(null);
   const navigate = useNavigate();
+  const keyword = searchParams.get('keyword') || '';
   const searchedCategoryId = Number(searchParams.get('categoryId')) || null;
   const activeCategoryId = searchedCategoryId || categoryId;
+  const isSearchMode = Boolean(keyword.trim() || searchedCategoryId);
 
   function changeCategory(nextCategoryId) {
     setCategoryId(nextCategoryId);
@@ -20,7 +22,7 @@ export default function HomePage() {
     <div className="authenticated-page min-h-screen bg-white">
       <AuthenticatedNavigation />
       <main>
-        <div className="mx-auto w-[calc(100%-2rem)] max-w-[780px] pt-5 sm:w-[calc(100%-3rem)]">
+        {!isSearchMode && <div className="mx-auto w-[calc(100%-2rem)] max-w-[780px] pt-5 sm:w-[calc(100%-3rem)]">
           <section className="rounded-[26px] border border-[#237596] px-5 py-4 sm:px-7" aria-label="Tạo bài đăng mới">
             <Link
               to="/posts/create/lost"
@@ -41,12 +43,12 @@ export default function HomePage() {
               </span>
             </nav>
           </section>
-        </div>
+        </div>}
 
-        <div className="mt-4">
+        {!isSearchMode && <div className="mt-4">
           <RecentEventsBar selectedId={activeCategoryId} onChange={changeCategory} />
-        </div>
-        <PrivatePostList keyword={searchParams.get('keyword') || ''} categoryId={activeCategoryId} />
+        </div>}
+        <PrivatePostList keyword={keyword} categoryId={activeCategoryId} />
       </main>
     </div>
   );

@@ -1,6 +1,10 @@
 @import "./styles/fonts.css";
 @import "tailwindcss";
 
+@media (max-width: 1023px) {
+  body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+}
+
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),
 select,
@@ -19,7 +23,7 @@ button:disabled,
   min-height: 48px;
   align-items: center;
   gap: 12px;
-  border-radius: 14px;
+  border-radius: 20px;
   padding: 0 14px;
   color: #111;
   font-size: 15px;
@@ -33,10 +37,32 @@ button:disabled,
   color: #237596;
 }
 
-.sidebar-action:hover:not(:disabled) { background: #fff; color: #237596; }
+.sidebar-action:hover:not(:disabled) { background: rgb(35 117 150 / 10%); color: #123f51; }
 .sidebar-action:disabled { color: rgb(0 0 0 / 40%); }
 .sidebar-action-active { font-size: 16px; font-weight: 700; }
 .authenticated-sidebar form[role="search"] { display: block; width: 100%; }
+.mobile-top-search form[role="search"] { display: block; width: 100%; }
+
+@media (max-width: 1023px) {
+  .mobile-top-search form[role="search"] > div,
+  .mobile-top-search form[role="search"] > ul {
+    right: 0;
+    left: auto;
+    width: min(320px, calc(100vw - 24px));
+    min-width: 0;
+  }
+
+  .mobile-top-search-expanded form[role="search"] > div,
+  .mobile-top-search-expanded form[role="search"] > ul {
+    width: 100%;
+  }
+
+  .authenticated-sidebar form[role="search"] > div,
+  .authenticated-sidebar form[role="search"] > ul {
+    width: 100%;
+    min-width: 0;
+  }
+}
 
 main[aria-label="Trang chủ tìm đồ thất lạc"] > section:first-child,
 main[aria-label="Danh sách đồ bị mất"] > section:first-child,

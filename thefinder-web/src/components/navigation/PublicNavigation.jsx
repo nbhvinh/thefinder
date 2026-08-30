@@ -6,6 +6,8 @@ import CreatePostMenu from './CreatePostMenu';
 import SearchAutocomplete from './SearchAutocomplete';
 import { getCategories } from '../../api/categoryApi';
 import LostItemStats from './LostItemStats';
+import useScrollChromeVisibility from '../../hooks/useScrollChromeVisibility';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 const navigationItems = [
   { label: 'Trang chủ', to: '/', end: true },
@@ -25,9 +27,12 @@ export default function PublicNavigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
   const [categories, setCategories] = useState(fallbackCategories);
   const tagRef = useRef(null);
   const navigate = useNavigate();
+  const isMobileChromeVisible = useScrollChromeVisibility();
+  useBodyScrollLock(isMobileSearchFocused);
 
   useEffect(() => {
     getCategories().then((data) => {
@@ -54,21 +59,27 @@ export default function PublicNavigation() {
   };
 
   return <>
-    <header className="sticky top-0 z-40 bg-white px-4">
-      <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Mở menu" aria-expanded={isMobileMenuOpen} className="absolute bottom-[15px] left-3 z-10 grid h-10 w-10 place-items-center rounded-full text-[#237596] hover:bg-[#eef8fc] lg:hidden"><Menu className="h-6 w-6" /></button>
-      <nav className="mx-auto flex h-[70px] w-full max-w-[780px] items-end pb-[10px] pl-11 lg:pl-0" aria-label="Điều hướng chính">
-        <ul className="grid w-full grid-cols-4 gap-2 sm:gap-4">
+    {isMobileSearchFocused && <button type="button" aria-label="Đóng tìm kiếm" onClick={() => { document.activeElement?.blur(); setIsMobileSearchFocused(false); }} className="fixed inset-0 z-40 bg-black/25 lg:hidden" />}
+    <header className={`sticky top-0 h-16 bg-transparent px-4 lg:h-auto lg:bg-white ${isMobileSearchFocused ? 'z-50' : 'z-40'}`}>
+      <div className={`absolute inset-x-0 top-0 flex h-16 items-center gap-2 px-3 transition-transform duration-300 ease-out lg:hidden ${isMobileSearchFocused ? 'bg-transparent' : 'bg-white'} ${isMobileChromeVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+        <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Mở menu" aria-expanded={isMobileMenuOpen} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[#237596] hover:bg-[#eef8fc]"><Menu className="h-6 w-6" /></button>
+        <Link to="/" aria-label="TheFinder - Trang chủ" className="shrink-0"><BrandLogo className="h-10 w-10" /></Link>
+        <Link to="/" className="font-brand shrink-0 text-base text-black">TheFinder</Link>
+        <div className={`mobile-top-search absolute right-3 top-3 z-20 transition-[width] duration-300 ease-out ${isMobileSearchFocused ? 'mobile-top-search-expanded w-[calc(100%-24px)]' : 'w-[min(224px,45vw)]'}`}><SearchAutocomplete id="mobile-public-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={setIsMobileSearchFocused} inputClassName="!h-10 !w-full !px-3 focus:!w-full" /></div>
+      </div>
+      <nav className={`fixed inset-x-[70px] bottom-[max(10px,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[780px] transition-transform duration-300 ease-out lg:static lg:flex lg:h-[70px] lg:w-full lg:translate-y-0 lg:items-end lg:pb-[10px] ${isMobileChromeVisible && !isMobileSearchFocused ? 'translate-y-0' : 'translate-y-[calc(100%+24px)]'}`} aria-label="Điều hướng chính">
+        <ul className="grid w-full grid-cols-4 items-stretch gap-0 rounded-full border border-[#1882ac] bg-white p-1.5 shadow-[0_8px_30px_rgba(20,78,101,0.16)] lg:gap-4 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           {navigationItems.map((item) => <li key={item.to} className="text-center">
             {item.disabled
-              ? <span aria-disabled="true" title="Tính năng đang tạm khóa" className="inline-flex min-h-10 items-center justify-center rounded-full px-2 text-xs text-black/35 sm:px-4 sm:text-[15px]">{item.label}</span>
-              : <NavLink end={item.end} to={item.to} className={({ isActive }) => `inline-flex min-h-10 items-center justify-center rounded-full border px-2 text-xs transition-colors sm:px-5 sm:text-[15px] ${isActive ? 'border-[#1882ac] bg-white text-[#237596]' : 'border-transparent text-black hover:bg-[#f5f5f5] hover:text-[#237596]'}`}>{item.label}</NavLink>}
+              ? <span aria-disabled="true" title="Tính năng đang tạm khóa" className="inline-flex h-full min-h-11 items-center justify-center rounded-full px-1 text-[10px] leading-tight text-black/35 sm:px-3 sm:text-sm lg:min-h-10 lg:text-[15px]"><span>Báo cáo<br className="lg:hidden" /> trộm cắp</span></span>
+              : <NavLink end={item.end} to={item.to} className={({ isActive }) => `relative inline-flex h-full min-h-11 w-full items-center justify-center rounded-full px-1 text-[10px] font-medium leading-tight transition-colors sm:px-3 sm:text-sm lg:min-h-12 lg:w-auto lg:px-8 lg:text-[15px] ${isActive ? 'bg-[#237596] text-white lg:bg-transparent lg:text-black lg:after:absolute lg:after:inset-x-8 lg:after:bottom-0 lg:after:h-[5px] lg:after:rounded-full lg:after:bg-[#237596] lg:after:content-[""]' : 'text-black hover:bg-[#eef8fc] hover:text-[#237596]'}`}>{item.label}</NavLink>}
           </li>)}
         </ul>
       </nav>
     </header>
 
     {isMobileMenuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 z-40 bg-black/25 lg:hidden" />}
-    <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 w-[276px] flex-col bg-white p-5 shadow-xl lg:flex lg:shadow-none ${isMobileMenuOpen ? 'flex' : 'hidden'}`} aria-label="Tiện ích khách">
+    <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col bg-white p-5 shadow-xl transition-transform duration-300 ease-out lg:translate-x-0 lg:shadow-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} aria-label="Tiện ích khách">
       <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Đóng menu" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full text-black/65 hover:bg-[#eef8fc] lg:hidden"><X className="h-5 w-5" /></button>
       <Link to="/" aria-label="TheFinder - Trang chủ" className="flex items-center gap-3 px-2"><BrandLogo className="h-12 w-12" /><span className="font-brand text-xl text-black">TheFinder</span></Link>
       <div className="mt-5"><SearchAutocomplete id="site-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full !bg-white focus:!w-full" /></div>
@@ -81,7 +92,7 @@ export default function PublicNavigation() {
         <button type="button" onClick={() => navigate('/sign-in')} className="sidebar-action"><UserRound /><span>Trang cá nhân</span></button>
         <div ref={tagRef} className="relative">
           <button type="button" onClick={() => setIsTagsOpen((open) => !open)} aria-expanded={isTagsOpen} className="sidebar-action w-full"><Hash /><span>Tag</span></button>
-          {isTagsOpen && <div className="absolute left-0 top-full z-50 mt-2 max-h-72 w-60 overflow-auto rounded-2xl border border-[#1882ac] bg-white p-2 shadow-xl lg:bottom-0 lg:left-full lg:top-auto lg:ml-3 lg:mt-0">{categories.map((category) => <button key={category.id} type="button" onClick={() => selectTag(category.id)} className="block w-full rounded-xl px-4 py-2.5 text-left text-sm hover:bg-[#eef8fc] hover:text-[#237596]">#{category.name}</button>)}</div>}
+          {isTagsOpen && <div className="absolute bottom-0 left-full z-50 ml-2 max-h-[min(18rem,calc(100vh-2rem))] w-[calc(100vw-292px)] max-w-60 overflow-auto rounded-2xl border border-[#1882ac] bg-white p-2 shadow-xl lg:ml-3 lg:w-60">{categories.map((category) => <button key={category.id} type="button" onClick={() => selectTag(category.id)} className="block w-full rounded-xl px-3 py-2.5 text-left text-sm break-words hover:bg-[#eef8fc] hover:text-[#237596]">#{category.name}</button>)}</div>}
         </div>
       </div>
 

@@ -53,7 +53,7 @@ export default function NotificationCenter() {
   const list = notifications.slice(0, 3);
   return <div ref={rootRef} className="relative">
     <button type="button" onClick={() => setOpen((value) => !value)} aria-expanded={open} className="sidebar-action w-full"><Bell /><span>Thông báo</span>{notifications.length > 0 && <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{notifications.length}</span>}</button>
-    {open && <div className="absolute left-0 top-full z-[70] mt-2 w-[min(360px,calc(100vw-2rem))] rounded-2xl border border-[#237596] bg-white p-3 shadow-xl lg:left-full lg:top-0 lg:ml-3 lg:mt-0">
+    {open && <div className="absolute left-full top-0 z-[70] ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-[360px] overflow-auto rounded-2xl border border-[#237596] bg-white p-3 shadow-xl lg:ml-3 lg:w-[360px]">
       {list.length ? list.map((item) => <Link key={item.id} to={item.to} onClick={() => setOpen(false)} className="mb-2 block rounded-xl bg-[#e5e5e5] p-3 text-sm last:mb-0"><span>{item.message}</span><span className="mt-1 block text-[#237596]">{item.action}</span></Link>) : <p className="p-4 text-center text-sm text-slate-500">Bạn chưa có thông báo nào.</p>}
       {notifications.length > 3 && <button type="button" onClick={() => { setOpen(false); setShowAll(true); }} className="mt-2 w-full py-2 text-sm text-[#237596]">Xem thêm...</button>}
     </div>}

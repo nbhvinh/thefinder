@@ -50,8 +50,12 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   }
 
   return (
-    <article className="relative grid min-h-[316px] grid-cols-1 gap-4 rounded-[32px] border border-[#237596] bg-white p-3 md:grid-cols-[300px_1fr]" aria-labelledby={`post-${post.id}`}>
-      <div className="group relative grid min-h-[220px] self-start overflow-hidden rounded-[25px] bg-[#d9d9d9] md:h-[292px]">
+    <article className="relative flex min-h-[316px] flex-col gap-4 rounded-[32px] border border-[#237596] bg-white p-3 md:grid md:grid-cols-[300px_1fr]" aria-label={`Bài đăng ${post.title}`}>
+      <div className="min-w-0 px-2 pr-8 pt-2 md:hidden">
+        {typeLabel && <span className={`mr-2 inline-block align-[0.2em] rounded-full px-3 py-1 text-sm font-semibold ${typeLabelStyle}`}>{typeLabel}</span>}
+        <h2 className="inline break-words text-2xl text-black">{post.title}</h2>
+      </div>
+      <div className="group relative grid min-h-[220px] w-full shrink-0 self-start overflow-hidden rounded-[25px] bg-[#d9d9d9] md:h-[292px]">
         {hasImage ? <img src={imageUrls[currentImageIndex]} onError={() => setImageFailed(true)} alt={`Ảnh ${currentImageIndex + 1} của bài đăng ${post.title}`} className="h-full w-full object-cover" /> : <p className="place-self-center px-6 text-center text-base text-slate-500">Không có hình ảnh đính kèm</p>}
         {hasMultipleImages && (
           <div className="pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
@@ -64,10 +68,10 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
         )}
       </div>
       <div className="flex min-w-0 flex-col px-2 pt-2.5 md:px-0 md:pr-2.5">
-        <div className="flex items-start gap-2 pr-8">
+        <div className="hidden items-start gap-2 pr-8 md:flex">
           <div className="min-w-0">
             {typeLabel && <span className={`mr-2 inline-block align-[0.2em] rounded-full px-3 py-1 text-sm font-semibold ${typeLabelStyle}`}>{typeLabel}</span>}
-            <h2 id={`post-${post.id}`} className="inline break-words text-2xl text-black md:text-[26px]">{post.title}</h2>
+            <h2 className="inline break-words text-[26px] text-black">{post.title}</h2>
           </div>
         </div>
         <section className={`mt-2.5 rounded-[21px] bg-[#d9d9d9] p-3.5 transition-all ${isExpanded ? 'min-h-[140px]' : 'h-[140px] overflow-hidden'}`} aria-label="Nội dung bài đăng">

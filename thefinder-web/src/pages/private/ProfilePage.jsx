@@ -3,13 +3,13 @@ import { CalendarDays, Ellipsis, MapPin, Pencil, SearchX, Trash2 } from 'lucide-
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import { getCurrentUser } from '../../api/authApi';
 import { getMyClaims } from '../../api/claimApi';
-import { getMyPosts, getPosts } from '../../api/postApi';
+import { getMyPosts, getPost, getPosts } from '../../api/postApi';
 
 const filters = [
   { value: 'ALL', label: 'Tất cả' },
   { value: 'OPEN', label: 'Đang hoạt động' },
   { value: 'RESOLVED', label: 'Thành công' },
-  { value: 'CLOSED', label: 'Đã điền đơn' },
+  { value: 'CLAIMED', label: 'Đã điền đơn' },
 ];
 
 const statusLabels = { OPEN: 'Đang hoạt động', RESOLVED: 'Đã tìm thấy', CLOSED: 'Đã đóng' };
@@ -30,7 +30,7 @@ function imageUrl(post) {
   return url.startsWith('http') ? url : `http://localhost:8080${url}`;
 }
 
-function ProfilePostCard({ post }) {
+function ProfilePostCard({ post, manageable = true }) {
   const cover = imageUrl(post);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -49,13 +49,13 @@ function ProfilePostCard({ post }) {
         ? <img src={cover} alt={`Ảnh bài đăng ${post.title}`} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]" />
         : <div className="grid h-full place-items-center px-5 text-center text-sm text-[#6c8792]">Bài đăng chưa có hình ảnh</div>}
       <span className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${post.type === 'FOUND' ? 'bg-white text-[#176c8d]' : 'bg-[#237596] text-white'}`}>{typeLabels[post.type] ?? post.type}</span>
-      <div ref={menuRef} className="absolute right-3 top-3 z-10">
+      {manageable && <div ref={menuRef} className="absolute right-3 top-3 z-10">
         <button type="button" onClick={() => setMenuOpen((open) => !open)} aria-label={`Tùy chọn bài viết ${post.title}`} aria-expanded={menuOpen} className="grid h-9 w-9 place-items-center rounded-full bg-white text-[#18323d] shadow-md transition hover:bg-[#eef8fc]"><Ellipsis className="h-5 w-5" /></button>
         {menuOpen && <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-[#bdd7e2] bg-white p-1.5 text-sm shadow-xl">
           <button type="button" onClick={() => setMenuOpen(false)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[#18323d] hover:bg-[#eef8fc]"><Pencil className="h-4 w-4 text-[#237596]" />Chỉnh sửa bài viết</button>
           <button type="button" onClick={() => setMenuOpen(false)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" />Xóa bài viết</button>
         </div>}
-      </div>
+      </div>}
     </div>
     <div className="p-4">
       <div className="flex items-start justify-between gap-3">
@@ -75,6 +75,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [posts, setPosts] = useState([]);
   const [sentClaims, setSentClaims] = useState([]);
+  const [claimedPosts, setClaimedPosts] = useState([]);
   const [filter, setFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -95,9 +96,17 @@ export default function ProfilePage() {
           postsRequest,
           getMyClaims().catch(() => []),
         ]);
+        const normalizedClaims = Array.isArray(myClaims) ? myClaims : [];
+        const claimedPostIds = [...new Set(normalizedClaims.map((claim) => claim.postId).filter(Boolean))];
+        const claimedPostResults = await Promise.allSettled(claimedPostIds.map((postId) => getPost(postId)));
+        const claimedPostList = claimedPostResults
+          .filter((result) => result.status === 'fulfilled')
+          .map((result) => result.value)
+          .filter((post) => Number(post.authorId) !== Number(currentUser.id));
         if (active) {
           setPosts(Array.isArray(myPosts) ? myPosts : []);
-          setSentClaims(Array.isArray(myClaims) ? myClaims : []);
+          setSentClaims(normalizedClaims);
+          setClaimedPosts(claimedPostList);
         }
       } catch {
         if (active) setError('Không thể tải trang cá nhân. Hãy thử lại sau.');
@@ -109,10 +118,11 @@ export default function ProfilePage() {
     return () => { active = false; };
   }, []);
 
-  const visiblePosts = useMemo(
-    () => filter === 'ALL' ? posts : posts.filter((post) => post.status === filter),
-    [filter, posts],
-  );
+  const visiblePosts = useMemo(() => {
+    if (filter === 'CLAIMED') return claimedPosts;
+    if (filter === 'ALL') return posts;
+    return posts.filter((post) => post.status === filter);
+  }, [claimedPosts, filter, posts]);
   const resolvedClaimsCount = sentClaims.filter((claim) => claim.status === 'CONFIRMED').length;
   const reputation = sentClaims.length === 0
     ? 0
@@ -152,8 +162,8 @@ export default function ProfilePage() {
 
         {error && <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-center text-sm text-red-700">{error}</p>}
         {loading && <div className="mt-6 grid gap-5 sm:grid-cols-2"><div className="h-80 animate-pulse rounded-[24px] bg-[#e6f0f3]" /><div className="h-80 animate-pulse rounded-[24px] bg-[#e6f0f3]" /></div>}
-        {!loading && !error && visiblePosts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2">{visiblePosts.map((post) => <ProfilePostCard key={post.id} post={post} />)}</div>}
-        {!loading && !error && visiblePosts.length === 0 && <div className="mt-6 grid min-h-64 place-items-center rounded-[26px] border border-dashed border-[#9fc5d4] bg-white px-6 text-center"><div><SearchX className="mx-auto h-9 w-9 text-[#70a5b9]" /><h3 className="mt-3 font-semibold text-[#14252c]">Chưa có bài đăng nào</h3><p className="mt-1 text-sm text-slate-500">Không có bài viết phù hợp với trạng thái này.</p></div></div>}
+        {!loading && !error && visiblePosts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2">{visiblePosts.map((post) => <ProfilePostCard key={post.id} post={post} manageable={filter !== 'CLAIMED'} />)}</div>}
+        {!loading && !error && visiblePosts.length === 0 && <div className="mt-6 grid min-h-64 place-items-center rounded-[26px] border border-dashed border-[#9fc5d4] bg-white px-6 text-center"><div><SearchX className="mx-auto h-9 w-9 text-[#70a5b9]" /><h3 className="mt-3 font-semibold text-[#14252c]">{filter === 'CLAIMED' ? 'Chưa điền đơn nào' : 'Chưa có bài đăng nào'}</h3><p className="mt-1 text-sm text-slate-500">{filter === 'CLAIMED' ? 'Các bài viết bạn đã gửi đơn sẽ xuất hiện tại đây.' : 'Không có bài viết phù hợp với trạng thái này.'}</p></div></div>}
       </section>
     </main>
   </div>;
