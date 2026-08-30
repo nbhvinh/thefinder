@@ -49,6 +49,15 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
+    @GetMapping("/mine")
+    public ResponseEntity<?> getMine(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body("Cần đăng nhập");
+        }
+        return ResponseEntity.ok(postService.getPostsByUser(userId));
+    }
+
     @GetMapping
     public ResponseEntity<Page<PostResponse>> getAll(
         @RequestParam(required = false) String keyword,

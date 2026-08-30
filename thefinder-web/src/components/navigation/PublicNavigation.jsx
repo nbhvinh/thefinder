@@ -1,4 +1,4 @@
-import { Bell, Hash, LogIn, Menu, MessageCircle, PenLine, UserRound, X } from 'lucide-react';
+import { Bell, Hash, House, LogIn, Menu, MessageCircle, PenLine, UserRound, X } from 'lucide-react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import BrandLogo from './BrandLogo';
@@ -74,6 +74,7 @@ export default function PublicNavigation() {
       <div className="mt-5"><SearchAutocomplete id="site-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full !bg-white focus:!w-full" /></div>
 
       <div className="mt-5 flex flex-col gap-1.5">
+        <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><House /><span>Trang chính</span></NavLink>
         <div className="sidebar-action"><PenLine /><span>Đăng bài</span><CreatePostMenu compact /></div>
         <button type="button" disabled className="sidebar-action" title="Đăng nhập để sử dụng"><MessageCircle /><span>Nhắn tin</span></button>
         <button type="button" disabled className="sidebar-action" title="Đăng nhập để sử dụng"><Bell /><span>Thông báo</span></button>

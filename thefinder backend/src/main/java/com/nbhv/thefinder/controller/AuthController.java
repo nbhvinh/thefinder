@@ -68,7 +68,8 @@ public class AuthController {
                 .<ResponseEntity<?>>map(user -> ResponseEntity.ok(Map.of(
                         "id", user.getId(),
                         "fullName", user.getFullName(),
-                        "email", user.getEmail())))
+                        "email", user.getEmail(),
+                        "createdAt", user.getCreatedAt())))
                 .orElseGet(() -> ResponseEntity.status(401).body("Phiên đăng nhập không hợp lệ"));
     }
 

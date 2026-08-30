@@ -9,7 +9,7 @@ function formatDateTime(value) {
   return `${pad(date.getHours())}:${pad(date.getMinutes())} ${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
 }
 
-export default function HomePostCard({ post, onFound }) {
+export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
@@ -31,6 +31,10 @@ export default function HomePostCard({ post, onFound }) {
   const typeLabelStyle = post.type === 'FOUND'
     ? 'border border-[#237596] bg-white text-black'
     : 'border border-[#237596] bg-[#237596] text-white';
+  const isResolved = post.status === 'RESOLVED';
+  const isClosed = post.status === 'CLOSED';
+  const claimButtonLabel = isResolved ? 'RESOLVED' : isClosed ? 'CLOSED' : claimStatus === 'SUBMITTED' ? 'ĐÃ GỬI' : claimStatus === 'PENDING' || claimStatus === 'REVIEWING' ? 'PENDING' : post.type === 'FOUND' ? 'Đây là đồ của bạn?' : 'Bạn có tìm thấy?';
+  const claimButtonDisabled = isResolved || isClosed || Boolean(claimStatus) || isOwner;
 
   function selectImage(index) {
     setImageFailed(false);
@@ -83,7 +87,7 @@ export default function HomePostCard({ post, onFound }) {
               <div className="flex flex-wrap items-center gap-1.5 text-base"><span>Trạng thái:</span><span className="text-[#237596]">{post.status}</span></div>
               <time dateTime={post.createdAt || undefined} className="mt-0.5 block text-xs text-slate-500">{formatDateTime(post.createdAt)}</time>
             </div>
-            <button type="button" onClick={() => onFound?.(post)} className="h-9 w-[174px] shrink-0 rounded-[30px] bg-[#237596] text-base text-white">Bạn có tìm thấy?</button>
+            {!isOwner && <button disabled={claimButtonDisabled} type="button" onClick={() => onFound?.(post)} className={`h-9 min-w-[174px] shrink-0 rounded-[30px] px-5 text-base ${isResolved ? 'bg-[#62a56d] text-white' : claimButtonDisabled ? 'border border-[#237596] bg-[#d9d9d9] text-slate-500' : 'bg-[#237596] text-white'}`}>{claimButtonLabel}</button>}
           </div>
         </div>
       </div>

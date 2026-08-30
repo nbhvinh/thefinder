@@ -9,6 +9,16 @@ export async function getPosts(params = {}) {
   return response.data.content ?? response.data;
 }
 
+export async function getPost(postId) {
+  const response = await axiosClient.get(`/posts/${postId}`);
+  return response.data;
+}
+
+export async function getMyPosts() {
+  const response = await axiosClient.get('/posts/mine');
+  return response.data;
+}
+
 export function uploadPostImages(postId, files) {
   const data = new FormData();
   [...files].forEach((file) => data.append('files', file));

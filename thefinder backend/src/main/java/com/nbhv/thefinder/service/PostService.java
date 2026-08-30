@@ -1,16 +1,12 @@
 package com.nbhv.thefinder.service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,32 +28,38 @@ import com.nbhv.thefinder.specification.PostSpecification;
 
 @Service
 public class PostService {
+    private static final Sort OPEN_POSTS_FIRST = Sort.by(Sort.Order.asc("status"));
+
     private final PostRepo postrepo;
     private final UserRepo userrepo;
     private final CategoryRepo categoryrepo;
-
-    @Value("${app.upload.dir}")
-    private String uploadDir;
+    private final ImageStorageService imageStorageService;
 
     private static final int MAX_IMAGES_PER_POST = 4;
 
     public PostService(PostRepo postrepo, UserRepo userrepo,
-                        CategoryRepo categoryrepo) {
+                        CategoryRepo categoryrepo, ImageStorageService imageStorageService) {
         this.postrepo = postrepo;
         this.userrepo = userrepo;
         this.categoryrepo = categoryrepo;
+        this.imageStorageService = imageStorageService;
     }
 
     public Page<PostResponse> searchPosts(String keyword, PostType type, Long categoryId,
                                        String location, PostStatus status, Pageable pageable) {
-    Specification<Post> spec = Specification
+        Specification<Post> spec = Specification
             .where(PostSpecification.hasKeyword(keyword))
             .and(PostSpecification.hasType(type))
             .and(PostSpecification.hasCategory(categoryId))
             .and(PostSpecification.hasLocation(location))
             .and(PostSpecification.hasStatus(status));
 
-    return postrepo.findAll(spec, pageable).map(PostResponse::from);
+        Pageable prioritizedPageable = PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                OPEN_POSTS_FIRST.and(pageable.getSort()));
+
+        return postrepo.findAll(spec, prioritizedPageable).map(PostResponse::from);
     }
 
     public PostResponse createPost(Long userId, PostCreateRequest req) {
@@ -83,7 +85,13 @@ public class PostService {
     }
 
     public List<PostResponse> getAllPosts() {
-        return postrepo.findAll().stream()
+        return postrepo.findAll(OPEN_POSTS_FIRST.and(Sort.by(Sort.Order.desc("createdAt")))).stream()
+                .map(PostResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public List<PostResponse> getPostsByUser(Long userId) {
+        return postrepo.findByUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(PostResponse::from)
                 .collect(Collectors.toList());
     }
@@ -93,8 +101,6 @@ public class PostService {
                 .orElseThrow(() -> new RuntimeException("Post không tồn tại"));
         return PostResponse.from(post);
     }
-
-    private static final List<String> ALLOWED_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".webp");
 
     public PostResponse uploadImages(Long postId, Long userId, List<MultipartFile> files) {
         Post post = postrepo.findById(postId)
@@ -111,39 +117,17 @@ public class PostService {
                             + currentCount + ", đang tải thêm " + files.size() + ")");
         }
 
-        try {
-            Path uploadPath = Path.of(uploadDir);
-            Files.createDirectories(uploadPath);
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
 
-            for (MultipartFile file : files) {
-                if (file.isEmpty()) continue;
-                String originalFilename = file.getOriginalFilename();
-                if (originalFilename == null || !originalFilename.contains(".")) {
-                    throw new IllegalArgumentException("File không có phần mở rộng hợp lệ");
-                }
-
-                String ext = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
-        if (!ALLOWED_EXTENSIONS.contains(ext)) {
-            throw new IllegalArgumentException("Định dạng file không hỗ trợ: " + ext);
+            PostImage image = new PostImage();
+            image.setPost(post);
+            image.setUrl(imageStorageService.store(file, "posts"));
+            post.getImages().add(image);
         }
 
-        String filename = UUID.randomUUID() + ext;
-        Path target = uploadPath.resolve(filename);
-        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-
-        PostImage image = new PostImage();
-        image.setPost(post);
-        image.setUrl("/images/posts/" + filename);
-        post.getImages().add(image);
-    }
-
-            postrepo.save(post);
-            return PostResponse.from(post);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi lưu file ảnh", e);
-        }
+        postrepo.save(post);
+        return PostResponse.from(post);
     }
     
 }
-

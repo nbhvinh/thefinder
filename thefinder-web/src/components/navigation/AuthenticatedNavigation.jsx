@@ -1,5 +1,5 @@
-import { Bell, Hash, Menu, MessageCircle, PenLine, UserRound, X } from 'lucide-react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Hash, House, Inbox, Menu, MessageCircle, PenLine, Send, UserRound, X } from 'lucide-react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import BrandLogo from './BrandLogo';
 import CreatePostMenu from './CreatePostMenu';
@@ -7,6 +7,7 @@ import SearchAutocomplete from './SearchAutocomplete';
 import { getCurrentUser, logout } from '../../api/authApi';
 import { getCategories } from '../../api/categoryApi';
 import LostItemStats from './LostItemStats';
+import NotificationCenter from './NotificationCenter';
 
 const links = [
   { label: 'Trang chủ', to: '/home', end: true },
@@ -32,6 +33,9 @@ export default function AuthenticatedNavigation() {
   const accountRef = useRef(null);
   const tagRef = useRef(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const drawerMode = pathname.startsWith('/posts/create/')
+    || /^\/posts\/[^/]+\/claim$/.test(pathname);
 
   useEffect(() => {
     getCurrentUser().then((response) => {
@@ -71,7 +75,7 @@ export default function AuthenticatedNavigation() {
 
   return <>
     <header className="sticky top-0 z-40 bg-white px-4">
-      <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Mở menu" aria-expanded={isMobileMenuOpen} className="absolute bottom-[15px] left-3 z-10 grid h-10 w-10 place-items-center rounded-full text-[#237596] hover:bg-[#eef8fc] lg:hidden"><Menu className="h-6 w-6" /></button>
+      <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Mở menu" aria-expanded={isMobileMenuOpen} className={`absolute bottom-[15px] left-3 z-10 h-10 w-10 place-items-center rounded-full text-[#237596] hover:bg-[#eef8fc] ${drawerMode ? 'grid' : 'grid lg:hidden'}`}><Menu className="h-6 w-6" /></button>
       <nav className="mx-auto flex h-[70px] w-full max-w-[780px] items-end pb-[10px] pl-11 lg:pl-0" aria-label="Điều hướng chính">
         <ul className="grid w-full grid-cols-4 gap-2 sm:gap-4">
           {links.map((link) => <li key={link.to} className="text-center">
@@ -83,9 +87,9 @@ export default function AuthenticatedNavigation() {
       </nav>
     </header>
 
-    {isMobileMenuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 z-40 bg-black/25 lg:hidden" />}
-    <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 w-[276px] flex-col bg-white p-5 shadow-xl lg:flex lg:shadow-none ${isMobileMenuOpen ? 'flex' : 'hidden'}`} aria-label="Tiện ích tài khoản">
-      <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Đóng menu" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full text-black/65 hover:bg-[#eef8fc] lg:hidden"><X className="h-5 w-5" /></button>
+    {isMobileMenuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setIsMobileMenuOpen(false)} className={`fixed inset-0 z-40 bg-black/25 ${drawerMode ? '' : 'lg:hidden'}`} />}
+    <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 w-[276px] flex-col bg-white p-5 shadow-xl ${drawerMode ? (isMobileMenuOpen ? 'flex' : 'hidden') : `lg:flex lg:shadow-none ${isMobileMenuOpen ? 'flex' : 'hidden'}`}`} aria-label="Tiện ích tài khoản">
+      <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Đóng menu" className={`absolute right-3 top-3 h-9 w-9 place-items-center rounded-full text-black/65 hover:bg-[#eef8fc] ${drawerMode ? 'grid' : 'grid lg:hidden'}`}><X className="h-5 w-5" /></button>
       <Link to="/home" aria-label="TheFinder - Trang chủ" className="flex items-center gap-3 px-2">
         <BrandLogo className="h-12 w-12" />
         <span className="font-brand text-xl text-black">TheFinder</span>
@@ -96,10 +100,13 @@ export default function AuthenticatedNavigation() {
       </div>
 
       <div className="mt-5 flex flex-col gap-1.5">
+        <NavLink end to="/home" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><House /><span>Trang chính</span></NavLink>
         <div className="sidebar-action"><PenLine /><span>Đăng bài</span><CreatePostMenu isAuthenticated compact /></div>
         <button type="button" disabled className="sidebar-action" title="Tính năng đang được phát triển"><MessageCircle /><span>Nhắn tin</span></button>
-        <button type="button" disabled className="sidebar-action" title="Tính năng đang được phát triển"><Bell /><span>Thông báo</span></button>
-        <button type="button" disabled className="sidebar-action" title="Tính năng đang được phát triển"><UserRound /><span>Trang cá nhân</span></button>
+        <NavLink to="/claims/received" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><Inbox /><span>Các đơn nhận được</span></NavLink>
+        <NavLink to="/claims/sent" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><Send /><span>Các đơn đã gửi</span></NavLink>
+        <NotificationCenter />
+        <NavLink to="/profile" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><UserRound /><span>Trang cá nhân</span></NavLink>
 
         <div ref={tagRef} className="relative">
           <button type="button" onClick={() => setIsTagsOpen((open) => !open)} aria-expanded={isTagsOpen} className="sidebar-action w-full"><Hash /><span>Tag</span></button>
@@ -114,6 +121,6 @@ export default function AuthenticatedNavigation() {
         <button type="button" onClick={() => setIsAccountOpen((open) => !open)} aria-expanded={isAccountOpen} className="flex h-12 w-full items-center gap-3 rounded-full border border-[#1882ac] bg-white px-4 text-left text-[15px] text-black hover:bg-[#eef8fc]"><UserRound className="h-5 w-5 shrink-0 text-[#237596]" /><span className="truncate">{userName}</span></button>
       </div>
     </aside>
-    <LostItemStats />
+    {!drawerMode && <LostItemStats />}
   </>;
 }
