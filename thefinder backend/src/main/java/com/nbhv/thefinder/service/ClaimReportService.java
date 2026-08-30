@@ -33,14 +33,22 @@ public class ClaimReportService {
 
     @Transactional
     public ClaimReportResponse createClaim(Long postId, ClaimReportRequest req, User currentUser) {
+        requireAuthenticatedUser(currentUser);
+
         Post post = postRepo.findById(postId)
                 .orElseThrow(() -> new NotFoundException("Post not found"));
 
         if (post.getUser().getId().equals(currentUser.getId())) {
             throw new ForbiddenException("Không thể tự claim bài đăng của chính mình");
         }
-        if (post.getStatus() != com.nbhv.thefinder.entity.enums.PostStatus.OPEN) {
+        if (post.getStatus() != PostStatus.OPEN) {
             throw new IllegalStateException("Post này không còn nhận claim");
+        }
+        if (claimRepo.existsByPostIdAndClaimantIdAndStatusIn(
+                postId,
+                currentUser.getId(),
+                List.of(ClaimStatus.SUBMITTED, ClaimStatus.PENDING, ClaimStatus.REVIEWING))) {
+            throw new IllegalStateException("Bạn đã có claim đang chờ xử lý cho post này");
         }
 
         ClaimReport claim = new ClaimReport();
@@ -57,6 +65,14 @@ public class ClaimReportService {
 
     @Transactional
     public List<String> addImages(Long claimId, List<MultipartFile> files, User currentUser) {
+        requireAuthenticatedUser(currentUser);
+        if (files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("Vui lòng chọn ít nhất một ảnh");
+        }
+        if (files.stream().anyMatch(file -> file == null || file.isEmpty())) {
+            throw new IllegalArgumentException("Danh sách upload chứa ảnh rỗng");
+        }
+
         ClaimReport claim = claimRepo.findById(claimId)
                 .orElseThrow(() -> new NotFoundException("Claim not found"));
 
@@ -87,7 +103,11 @@ public class ClaimReportService {
         ClaimReportResponse res = new ClaimReportResponse();
         res.setId(c.getId());
         res.setPostId(c.getPost().getId());
+        res.setPostTitle(c.getPost().getTitle());
+        res.setPostType(c.getPost().getType());
+        res.setPostStatus(c.getPost().getStatus());
         res.setClaimantId(c.getClaimant().getId());
+        res.setClaimantName(c.getClaimant().getFullName());
         res.setClaimantUsername(c.getClaimant().getFullName());
         res.setDescription(c.getDescription());
         res.setMeetTime(c.getMeetTime());
@@ -101,30 +121,42 @@ public class ClaimReportService {
     }
 
     @Transactional
-public ClaimReportResponse confirmClaim(Long claimId, User currentUser) {
-    ClaimReport claim = claimRepo.findById(claimId)
-            .orElseThrow(() -> new NotFoundException("Claim not found"));
+    public ClaimReportResponse confirmClaim(Long claimId, User currentUser) {
+        requireAuthenticatedUser(currentUser);
 
-    Post post = claim.getPost();
+        ClaimReport claim = claimRepo.findById(claimId)
+                .orElseThrow(() -> new NotFoundException("Claim not found"));
 
-    if (!post.getUser().getId().equals(currentUser.getId())) {
-        throw new ForbiddenException("Chỉ chủ post mới được confirm claim");
+        Post post = claim.getPost();
+
+        if (!post.getUser().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Chỉ chủ post mới được confirm claim");
+        }
+        if (post.getStatus() != PostStatus.OPEN) {
+            throw new IllegalStateException("Post này không còn ở trạng thái mở");
+        }
+        if (claim.getStatus() != ClaimStatus.PENDING) {
+            throw new IllegalStateException("Claim này không còn ở trạng thái chờ xử lý");
+        }
+
+        claim.setStatus(ClaimStatus.CONFIRMED);
+        claimRepo.save(claim);
+
+        claimRepo.rejectOtherClaims(
+                post.getId(),
+                claim.getId(),
+                ClaimStatus.PENDING,
+                ClaimStatus.REJECTED);
+
+        post.setStatus(PostStatus.RESOLVED);
+        postRepo.save(post);
+
+        return toResponse(claim);
     }
-    if (post.getStatus() == PostStatus.RESOLVED) {
-        throw new IllegalStateException("Post này đã được resolve rồi");
+
+    private void requireAuthenticatedUser(User currentUser) {
+        if (currentUser == null || currentUser.getId() == null) {
+            throw new ForbiddenException("Bạn cần đăng nhập để thực hiện thao tác này");
+        }
     }
-    if (claim.getStatus() != ClaimStatus.PENDING) {
-        throw new IllegalStateException("Claim này không còn ở trạng thái chờ xử lý");
-    }
-
-    claim.setStatus(ClaimStatus.CONFIRMED);
-    claimRepo.save(claim);
-
-    claimRepo.rejectOtherClaims(post.getId(), claim.getId());
-
-    post.setStatus(PostStatus.RESOLVED);
-    postRepo.save(post);
-
-    return toResponse(claim);
-}
 }
