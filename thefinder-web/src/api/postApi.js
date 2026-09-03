@@ -24,3 +24,15 @@ export function uploadPostImages(postId, files) {
   [...files].forEach((file) => data.append('files', file));
   return axiosClient.post(`/posts/${postId}/images`, data, { headers: { 'Content-Type': 'multipart/form-data' } });
 }
+
+export function updatePost(postId, payload) {
+  return axiosClient.put(`/posts/${postId}`, payload);
+}
+
+export function deletePost(postId) {
+  return axiosClient.delete(`/posts/${postId}`);
+}
+
+export function reportPost(postId, payload) {
+  return axiosClient.post(`/posts/${postId}/reports`, payload);
+}

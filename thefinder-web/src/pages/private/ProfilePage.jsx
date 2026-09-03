@@ -3,8 +3,9 @@ import { CalendarDays, Ellipsis, MapPin, Pencil, SearchX, Trash2 } from 'lucide-
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import { getCurrentUser } from '../../api/authApi';
 import { getMyClaims } from '../../api/claimApi';
-import { getMyPosts, getPost, getPosts } from '../../api/postApi';
+import { deletePost, getMyPosts, getPost, getPosts } from '../../api/postApi';
 import { resolveApiAssetUrl } from '../../config/api';
+import EditPostModal from '../../components/post/EditPostModal';
 
 const filters = [
   { value: 'ALL', label: 'Tất cả' },
@@ -30,7 +31,7 @@ function imageUrl(post) {
   return resolveApiAssetUrl(url);
 }
 
-function ProfilePostCard({ post, manageable = true }) {
+function ProfilePostCard({ post, manageable = true, onEdit, onDelete }) {
   const cover = imageUrl(post);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -52,8 +53,8 @@ function ProfilePostCard({ post, manageable = true }) {
       {manageable && <div ref={menuRef} className="absolute right-3 top-3 z-10">
         <button type="button" onClick={() => setMenuOpen((open) => !open)} aria-label={`Tùy chọn bài viết ${post.title}`} aria-expanded={menuOpen} className="grid h-9 w-9 place-items-center rounded-full bg-white text-[#18323d] shadow-md transition hover:bg-[#eef8fc]"><Ellipsis className="h-5 w-5" /></button>
         {menuOpen && <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-2xl border border-[#bdd7e2] bg-white p-1.5 text-sm shadow-xl">
-          <button type="button" onClick={() => setMenuOpen(false)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[#18323d] hover:bg-[#eef8fc]"><Pencil className="h-4 w-4 text-[#237596]" />Chỉnh sửa bài viết</button>
-          <button type="button" onClick={() => setMenuOpen(false)} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" />Xóa bài viết</button>
+          <button type="button" onClick={() => { setMenuOpen(false); onEdit(post); }} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-[#18323d] hover:bg-[#eef8fc]"><Pencil className="h-4 w-4 text-[#237596]" />Chỉnh sửa bài viết</button>
+          <button type="button" onClick={() => { setMenuOpen(false); onDelete(post); }} className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-red-700 hover:bg-red-50"><Trash2 className="h-4 w-4" />Xóa bài viết</button>
         </div>}
       </div>}
     </div>
@@ -79,6 +80,9 @@ export default function ProfilePage() {
   const [filter, setFilter] = useState('ALL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingPost, setEditingPost] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -132,6 +136,28 @@ export default function ProfilePage() {
     ? Math.max(1, Math.floor((pageLoadedAt - new Date(user.createdAt).getTime()) / 86400000) + 1)
     : 0;
 
+  function handleUpdated(updatedPost) {
+    setPosts((current) => current.map((post) => post.id === updatedPost.id ? updatedPost : post));
+    setEditingPost(null);
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      setError('');
+      await deletePost(deleteTarget.id);
+      setPosts((current) => current.filter((item) => item.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (deleteError) {
+      const data = deleteError.response?.data;
+      setError(typeof data === 'string' ? data : data?.error || 'Không thể xóa bài viết. Vui lòng thử lại.');
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return <div className="authenticated-page min-h-screen bg-white">
     <AuthenticatedNavigation />
     <main className="mx-auto w-[calc(100%-2rem)] max-w-[780px] pb-16 pt-5 sm:w-[calc(100%-3rem)]">
@@ -162,9 +188,11 @@ export default function ProfilePage() {
 
         {error && <p className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5 text-center text-sm text-red-700">{error}</p>}
         {loading && <div className="mt-6 grid gap-5 sm:grid-cols-2"><div className="h-80 animate-pulse rounded-[24px] bg-[#e6f0f3]" /><div className="h-80 animate-pulse rounded-[24px] bg-[#e6f0f3]" /></div>}
-        {!loading && !error && visiblePosts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2">{visiblePosts.map((post) => <ProfilePostCard key={post.id} post={post} manageable={filter !== 'CLAIMED'} />)}</div>}
+        {!loading && !error && visiblePosts.length > 0 && <div className="mt-6 grid gap-5 sm:grid-cols-2">{visiblePosts.map((post) => <ProfilePostCard key={post.id} post={post} manageable={filter !== 'CLAIMED'} onEdit={setEditingPost} onDelete={setDeleteTarget} />)}</div>}
         {!loading && !error && visiblePosts.length === 0 && <div className="mt-6 grid min-h-64 place-items-center rounded-[26px] border border-dashed border-[#9fc5d4] bg-white px-6 text-center"><div><SearchX className="mx-auto h-9 w-9 text-[#70a5b9]" /><h3 className="mt-3 font-semibold text-[#14252c]">{filter === 'CLAIMED' ? 'Chưa điền đơn nào' : 'Chưa có bài đăng nào'}</h3><p className="mt-1 text-sm text-slate-500">{filter === 'CLAIMED' ? 'Các bài viết bạn đã gửi đơn sẽ xuất hiện tại đây.' : 'Không có bài viết phù hợp với trạng thái này.'}</p></div></div>}
       </section>
     </main>
+    {editingPost && <EditPostModal post={editingPost} onClose={() => setEditingPost(null)} onUpdated={handleUpdated} />}
+    {deleteTarget && <div className="fixed inset-0 z-[110] grid place-items-center bg-black/35 p-4"><section role="dialog" aria-modal="true" aria-labelledby="delete-post-title" className="w-full max-w-md rounded-[30px] border border-[#237596] bg-white p-6 text-center shadow-2xl sm:p-8"><div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-red-100 text-red-600"><Trash2 className="h-7 w-7" /></div><h2 id="delete-post-title" className="mt-4 text-2xl font-semibold text-[#14252c]">Xóa bài viết?</h2><p className="mt-3 text-slate-600">Bạn có chắc muốn xóa vĩnh viễn bài viết <strong className="text-[#14252c]">“{deleteTarget.title}”</strong>?</p><p className="mt-2 text-sm text-red-700">Ảnh và các đơn liên quan cũng sẽ bị xóa. Thao tác này không thể hoàn tác.</p><div className="mt-7 grid gap-3 sm:grid-cols-2"><button disabled={deleting} type="button" onClick={() => setDeleteTarget(null)} className="h-11 rounded-full border border-[#237596] bg-white disabled:opacity-50">Hủy</button><button disabled={deleting} type="button" onClick={handleDelete} className="h-11 rounded-full bg-[#fb5353] text-white disabled:opacity-50">{deleting ? 'Đang xóa...' : 'Xóa bài viết'}</button></div></section></div>}
   </div>;
 }

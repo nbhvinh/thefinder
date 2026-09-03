@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nbhv.thefinder.dto.LoginRequest;
 import com.nbhv.thefinder.dto.RegisterRequest;
 import com.nbhv.thefinder.entity.User;
+import com.nbhv.thefinder.exception.ForbiddenException;
 import com.nbhv.thefinder.repo.UserRepo;
 
 import jakarta.servlet.http.HttpSession;
@@ -51,11 +52,15 @@ public class AuthController {
         if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(401).body("Sai email hoặc mật khẩu");
         }
+        if (user.isBlacklisted()) {
+            throw new ForbiddenException("Account is blacklisted");
+        }
         session.setAttribute("userId", user.getId());
         return ResponseEntity.ok(Map.of(
                 "id", user.getId(),
                 "fullName", user.getFullName(),
-                "email", user.getEmail()));
+                "email", user.getEmail(),
+                "role", user.getRole()));
     }
 
     @GetMapping("/me")
@@ -69,6 +74,7 @@ public class AuthController {
                         "id", user.getId(),
                         "fullName", user.getFullName(),
                         "email", user.getEmail(),
+                        "role", user.getRole(),
                         "createdAt", user.getCreatedAt())))
                 .orElseGet(() -> ResponseEntity.status(401).body("Phiên đăng nhập không hợp lệ"));
     }

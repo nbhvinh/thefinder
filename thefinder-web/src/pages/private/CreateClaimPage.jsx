@@ -43,6 +43,7 @@ export default function CreateClaimPage() {
     if (!form.meetTime || new Date(form.meetTime) <= new Date()) return 'Vui lòng chọn thời gian gặp trong tương lai.';
     if (!form.meetLocation.trim()) return 'Vui lòng nhập địa điểm gặp.';
     if (!files.length) return 'Bạn phải tải lên ít nhất một ảnh minh chứng.';
+    if (files.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type.toLowerCase()))) return 'Chỉ hỗ trợ ảnh JPG, JPEG, PNG hoặc WebP.';
     if (files.some((file) => file.size > 5 * 1024 * 1024)) return 'Mỗi ảnh không được vượt quá 5MB.';
     return '';
   }

@@ -8,6 +8,10 @@ import com.nbhv.thefinder.entity.enums.PostType;
 
 public class PostSpecification {
 
+    public static Specification<Post> isVisible() {
+        return (root, query, cb) -> cb.isFalse(root.get("hidden"));
+    }
+
     public static Specification<Post> hasKeyword(String keyword) {
         return (root, query, cb) -> {
             if (keyword == null || keyword.isBlank()) return cb.conjunction();

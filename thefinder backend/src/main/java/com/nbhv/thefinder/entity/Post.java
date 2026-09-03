@@ -67,6 +67,9 @@ public class Post {
 
     private String location;
 
+    @Column(nullable = false)
+    private boolean hidden = false;
+
     @Column(name = "event_time")
     private OffsetDateTime eventTime;
 
@@ -81,6 +84,12 @@ public class Post {
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClaimReport> claimReports = new ArrayList<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Report> reports = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

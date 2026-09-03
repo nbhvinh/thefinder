@@ -1,4 +1,4 @@
-import { Hash, House, Inbox, Menu, MessageCircle, PenLine, Send, UserRound, X } from 'lucide-react';
+import { Hash, House, Inbox, Menu, MessageCircle, PenLine, Send, ShieldCheck, UserRound, X } from 'lucide-react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import BrandLogo from './BrandLogo';
@@ -28,13 +28,16 @@ const fallbackCategories = [
 export default function AuthenticatedNavigation() {
   const [query, setQuery] = useState('');
   const [userName, setUserName] = useState(() => sessionStorage.getItem('thefinder-user-name') || 'Tài khoản');
+  const [userRole, setUserRole] = useState(() => sessionStorage.getItem('thefinder-user-role') || 'USER');
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
   const [categories, setCategories] = useState(fallbackCategories);
   const accountRef = useRef(null);
   const tagRef = useRef(null);
+  const adminRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const isMobileChromeVisible = useScrollChromeVisibility();
@@ -45,7 +48,9 @@ export default function AuthenticatedNavigation() {
   useEffect(() => {
     getCurrentUser().then((response) => {
       setUserName(response.data.fullName);
+      setUserRole(response.data.role || 'USER');
       sessionStorage.setItem('thefinder-user-name', response.data.fullName);
+      sessionStorage.setItem('thefinder-user-role', response.data.role || 'USER');
     }).catch(() => {});
     getCategories().then((data) => {
       if (Array.isArray(data) && data.length) setCategories(data);
@@ -56,6 +61,7 @@ export default function AuthenticatedNavigation() {
     function closeMenus(event) {
       if (!accountRef.current?.contains(event.target)) setIsAccountOpen(false);
       if (!tagRef.current?.contains(event.target)) setIsTagsOpen(false);
+      if (!adminRef.current?.contains(event.target)) setIsAdminOpen(false);
     }
     document.addEventListener('pointerdown', closeMenus);
     return () => document.removeEventListener('pointerdown', closeMenus);
@@ -65,6 +71,7 @@ export default function AuthenticatedNavigation() {
     try { await logout(); } catch { /* Vẫn xóa phiên cục bộ nếu backend không phản hồi. */ }
     sessionStorage.removeItem('thefinder-authenticated');
     sessionStorage.removeItem('thefinder-user-name');
+    sessionStorage.removeItem('thefinder-user-role');
     navigate('/', { replace: true });
   }
 
@@ -128,7 +135,12 @@ export default function AuthenticatedNavigation() {
         </div>
       </div>
 
-      <div ref={accountRef} className="relative mt-auto">
+      {userRole === 'ADMIN' && <div ref={adminRef} className="relative mt-auto mb-2">
+        {isAdminOpen && <div className="absolute bottom-full left-0 mb-2 w-full rounded-2xl border border-[#1882ac] bg-white p-2 shadow-xl"><NavLink to="/admin/reports" onClick={() => { setIsAdminOpen(false); setIsMobileMenuOpen(false); }} className="block rounded-xl px-4 py-3 text-sm hover:bg-[#eef8fc] hover:text-[#237596]">Các bài viết bị báo cáo</NavLink><NavLink to="/admin/blacklist" onClick={() => { setIsAdminOpen(false); setIsMobileMenuOpen(false); }} className="mt-1 block rounded-xl px-4 py-3 text-sm hover:bg-[#eef8fc] hover:text-[#237596]">Blacklist</NavLink></div>}
+        <button type="button" onClick={() => setIsAdminOpen((open) => !open)} aria-expanded={isAdminOpen} className="sidebar-action w-full border border-[#1882ac]"><ShieldCheck /><span>Quản lý (admin)</span></button>
+      </div>}
+
+      <div ref={accountRef} className={`relative ${userRole === 'ADMIN' ? '' : 'mt-auto'}`}>
         {isAccountOpen && <div className="absolute bottom-full left-0 mb-2 w-full rounded-xl border border-[#1882ac] bg-white p-1 shadow-lg"><button type="button" onClick={handleLogout} className="block w-full rounded-lg px-4 py-2.5 text-left text-sm text-red-700 hover:bg-red-50">Đăng xuất</button></div>}
         <button type="button" onClick={() => setIsAccountOpen((open) => !open)} aria-expanded={isAccountOpen} className="flex h-12 w-full items-center gap-3 rounded-full border border-[#1882ac] bg-white px-4 text-left text-[15px] text-black hover:bg-[#eef8fc]"><UserRound className="h-5 w-5 shrink-0 text-[#237596]" /><span className="truncate">{userName}</span></button>
       </div>

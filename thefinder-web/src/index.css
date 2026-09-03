@@ -72,3 +72,8 @@ main[aria-label="Danh sách đồ tìm thấy"] > section:first-child {
   margin: 20px auto 0;
   border-radius: 26px;
 }
+
+/* Compact confirmation dialog on the create-claim page. */
+.max-w-\[900px\] {
+  max-width: 32rem !important;
+}

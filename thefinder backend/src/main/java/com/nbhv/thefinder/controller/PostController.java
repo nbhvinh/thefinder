@@ -9,7 +9,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.nbhv.thefinder.dto.PostCreateRequest;
 import com.nbhv.thefinder.dto.PostResponse;
+import com.nbhv.thefinder.dto.PostUpdateRequest;
 import com.nbhv.thefinder.entity.enums.PostStatus;
 import com.nbhv.thefinder.entity.enums.PostType;
 import com.nbhv.thefinder.service.PostService;
@@ -89,5 +92,20 @@ public class PostController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(400).body(e.getMessage());
         }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PostResponse> update(@PathVariable Long id,
+                                                @Valid @RequestBody PostUpdateRequest req,
+                                                HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        return ResponseEntity.ok(postService.updatePost(id, req, userId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        postService.deletePost(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }

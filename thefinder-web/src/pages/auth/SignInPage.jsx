@@ -20,6 +20,7 @@ export default function SignInPage() {
       const response = await login({ email: email.trim(), password });
       sessionStorage.setItem('thefinder-authenticated', 'true');
       sessionStorage.setItem('thefinder-user-name', response.data.fullName);
+      sessionStorage.setItem('thefinder-user-role', response.data.role || 'USER');
       navigate(location.state?.from || '/home');
     } catch (error) {
       setStatusMessage(error.response?.data || 'Không thể đăng nhập. Vui lòng thử lại.');

@@ -1,5 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, XCircle } from 'lucide-react';
+import { reportPost } from '../../api/postApi';
+
+const reportReasons = [
+  { value: 'SPAM', label: 'Spam' },
+  { value: 'FAKE', label: 'Thông tin giả' },
+  { value: 'INAPPROPRIATE', label: 'Nội dung không phù hợp' },
+  { value: 'OTHER', label: 'Lý do khác' },
+];
+
+function errorMessage(error) {
+  const data = error.response?.data;
+  return typeof data === 'string' ? data : data?.error || 'Không thể gửi báo cáo. Vui lòng thử lại.';
+}
 
 function formatDateTime(value) {
   if (!value) return 'Chưa cung cấp';
@@ -12,6 +25,12 @@ function formatDateTime(value) {
 export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isReportOpen, setIsReportOpen] = useState(false);
+  const [isReportFormOpen, setIsReportFormOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('SPAM');
+  const [reportDetail, setReportDetail] = useState('');
+  const [reportMessage, setReportMessage] = useState('');
+  const [reporting, setReporting] = useState(false);
+  const [reported, setReported] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const reportRef = useRef(null);
@@ -47,6 +66,25 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
 
   function showNextImage() {
     selectImage((currentImageIndex + 1) % imageUrls.length);
+  }
+
+  async function submitReport(event) {
+    event.preventDefault();
+    try {
+      setReporting(true);
+      setReportMessage('');
+      await reportPost(post.id, {
+        reason: reportReason,
+        detail: reportDetail.trim() || null,
+      });
+      setReported(true);
+      setReportMessage('Báo cáo đã được gửi tới quản trị viên.');
+      window.dispatchEvent(new Event('thefinder:notifications-changed'));
+    } catch (error) {
+      setReportMessage(errorMessage(error));
+    } finally {
+      setReporting(false);
+    }
   }
 
   return (
@@ -95,10 +133,11 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
           </div>
         </div>
       </div>
-      <div ref={reportRef} className="absolute right-4 top-4 z-20">
+      {!isOwner && <div ref={reportRef} className="absolute right-4 top-4 z-20">
         <button type="button" onClick={() => setIsReportOpen((open) => !open)} aria-label={`Mở menu báo cáo bài ${post.title}`} aria-expanded={isReportOpen} className="block text-[#d60000]"><XCircle size={22} fill="#d60000" color="white" /></button>
-        {isReportOpen && <div className="absolute right-0 top-full mt-2 w-28 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"><button type="button" className="block w-full rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50">Báo cáo</button></div>}
-      </div>
+        {isReportOpen && <div className="absolute right-0 top-full mt-2 w-28 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"><button disabled={reported} type="button" onClick={() => { setIsReportOpen(false); setIsReportFormOpen(true); }} className="block w-full rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 disabled:text-slate-400">{reported ? 'Đã báo cáo' : 'Báo cáo'}</button></div>}
+      </div>}
+      {isReportFormOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby={`report-title-${post.id}`}><form onSubmit={submitReport} className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><h2 id={`report-title-${post.id}`} className="text-2xl font-semibold text-black">Báo cáo bài viết</h2><p className="mt-1 line-clamp-2 text-sm text-slate-500">{post.title}</p></div><button type="button" onClick={() => setIsReportFormOpen(false)} aria-label="Đóng" className="text-slate-500 hover:text-red-600"><XCircle /></button></div><label className="mt-5 block text-sm font-medium text-black">Lý do<select value={reportReason} onChange={(event) => setReportReason(event.target.value)} disabled={reported} className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-[#237596]">{reportReasons.map((reason) => <option key={reason.value} value={reason.value}>{reason.label}</option>)}</select></label><label className="mt-4 block text-sm font-medium text-black">Giải thích thêm (không bắt buộc)<textarea value={reportDetail} onChange={(event) => setReportDetail(event.target.value)} disabled={reported} maxLength={1000} className="mt-2 min-h-28 w-full resize-y rounded-xl border border-slate-300 p-3 outline-none focus:border-[#237596]" /></label>{reportMessage && <p role="status" className={`mt-3 text-sm ${reported ? 'text-emerald-700' : 'text-red-700'}`}>{reportMessage}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setIsReportFormOpen(false)} className="h-10 rounded-full border border-[#237596] px-5">{reported ? 'Đóng' : 'Hủy'}</button>{!reported && <button disabled={reporting} type="submit" className="h-10 rounded-full bg-red-600 px-5 text-white disabled:opacity-60">{reporting ? 'Đang gửi...' : 'Gửi báo cáo'}</button>}</div></form></div>}
     </article>
   );
 }

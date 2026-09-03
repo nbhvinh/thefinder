@@ -1,5 +1,7 @@
 package com.nbhv.thefinder.entity;
 
+import com.nbhv.thefinder.entity.enums.UserRole;
+
 import jakarta.persistence.*;
 import java.time.OffsetDateTime;
 import lombok.Getter;
@@ -29,6 +31,13 @@ public class User {
 
     @Column(name = "avatar_url")
     private String avatarUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole role = UserRole.USER;
+
+    @Column(nullable = false)
+    private boolean blacklisted = false;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

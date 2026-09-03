@@ -22,6 +22,7 @@ public class PostResponse {
     private String contactInfo;
     private Long authorId;
     private String authorName;
+    private Long categoryId;
     private String categoryName;
     private OffsetDateTime createdAt;
     private List<PostImageResponse> images;
@@ -38,6 +39,7 @@ public class PostResponse {
         r.contactInfo = p.getContactInfo();
         r.authorId = p.getUser().getId();
         r.authorName = p.getUser().getFullName();
+        r.categoryId = p.getCategory() != null ? p.getCategory().getId() : null;
         r.categoryName = p.getCategory() != null ? p.getCategory().getName() : null;
         r.createdAt = p.getCreatedAt();
         r.images = p.getImages().stream()

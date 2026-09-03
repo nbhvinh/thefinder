@@ -7,12 +7,21 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.nbhv.thefinder.entity.ClaimImage;
+import com.nbhv.thefinder.entity.ClaimReport;
+import com.nbhv.thefinder.entity.Post;
+import com.nbhv.thefinder.entity.PostImage;
+
 @Service
 public class ImageStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(ImageStorageService.class);
 
     private static final List<String> ALLOWED_EXTENSIONS = List.of(".jpg", ".jpeg", ".png", ".webp");
     private static final List<String> ALLOWED_CONTENT_TYPES = List.of("image/jpeg", "image/png", "image/webp");
@@ -73,5 +82,42 @@ public class ImageStorageService {
 
         Path parent = postUploadDir.getParent();
         return parent == null ? Path.of(subDir) : parent.resolve(subDir);
+    }
+
+    public void deleteAllForPost(Post post) {
+        for (PostImage image : post.getImages()) {
+            deleteStoredFile(image.getUrl());
+        }
+        for (ClaimReport claim : post.getClaimReports()) {
+            for (ClaimImage image : claim.getImages()) {
+                deleteStoredFile(image.getImageUrl());
+            }
+        }
+    }
+
+    void deleteStoredFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+
+        String[] parts = imageUrl.split("/");
+        if (parts.length != 4 || !"images".equals(parts[1])
+                || !("posts".equals(parts[2]) || "claims".equals(parts[2]))) {
+            log.warn("Không thể xác định file ảnh từ URL: {}", imageUrl);
+            return;
+        }
+
+        Path uploadDir = resolveUploadPath(parts[2]).toAbsolutePath().normalize();
+        Path file = uploadDir.resolve(parts[3]).normalize();
+        if (!file.getParent().equals(uploadDir)) {
+            log.warn("Từ chối xóa file ngoài thư mục upload: {}", imageUrl);
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(file);
+        } catch (IOException e) {
+            log.warn("Không thể xóa file ảnh {}", file, e);
+        }
     }
 }

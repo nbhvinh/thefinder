@@ -14,6 +14,9 @@ import PrivateFoundPage from '../pages/private/FoundPage';
 import CreateClaimPage from '../pages/private/CreateClaimPage';
 import ClaimsListPage from '../pages/private/ClaimsListPage';
 import ProfilePage from '../pages/private/ProfilePage';
+import AdminRoute from './AdminRoute';
+import AdminReportsPage from '../pages/private/AdminReportsPage';
+import AdminBlacklistPage from '../pages/private/AdminBlacklistPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -27,5 +30,5 @@ function ScrollToTop() {
 }
 
 export default function AppRoutes() {
-  return <BrowserRouter><ScrollToTop /><Routes><Route path="/" element={<PublicHomePage />} /><Route path="/lost" element={<LostPostsPage />} /><Route path="/found" element={<FoundPostsPage />} /><Route path="/sign-in" element={<SignInPage />} /><Route path="/sign-up" element={<SignUpPage />} /><Route element={<ProtectedRoute />}><Route path="/home" element={<HomePage />} /><Route path="/home/lost" element={<PrivateLostPage />} /><Route path="/home/found" element={<PrivateFoundPage />} /><Route path="/profile" element={<ProfilePage />} /><Route path="/posts/create/lost" element={<CreateLostPostPage />} /><Route path="/posts/create/found" element={<CreateFoundPostPage />} /><Route path="/posts/:postId/claim" element={<CreateClaimPage />} /><Route path="/claims/received" element={<ClaimsListPage mode="received" />} /><Route path="/claims/sent" element={<ClaimsListPage mode="sent" />} /></Route><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter>;
+  return <BrowserRouter><ScrollToTop /><Routes><Route path="/" element={<PublicHomePage />} /><Route path="/lost" element={<LostPostsPage />} /><Route path="/found" element={<FoundPostsPage />} /><Route path="/sign-in" element={<SignInPage />} /><Route path="/sign-up" element={<SignUpPage />} /><Route element={<ProtectedRoute />}><Route path="/home" element={<HomePage />} /><Route path="/home/lost" element={<PrivateLostPage />} /><Route path="/home/found" element={<PrivateFoundPage />} /><Route path="/profile" element={<ProfilePage />} /><Route path="/posts/create/lost" element={<CreateLostPostPage />} /><Route path="/posts/create/found" element={<CreateFoundPostPage />} /><Route path="/posts/:postId/claim" element={<CreateClaimPage />} /><Route path="/claims/received" element={<ClaimsListPage mode="received" />} /><Route path="/claims/sent" element={<ClaimsListPage mode="sent" />} /><Route element={<AdminRoute />}><Route path="/admin/reports" element={<AdminReportsPage />} /><Route path="/admin/blacklist" element={<AdminBlacklistPage />} /></Route></Route><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter>;
 }
