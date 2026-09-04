@@ -29,7 +29,7 @@ The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đ�
 - Hỗ trợ tạo nhanh bài đăng bằng popup ở trang chủ, có xem trước, tải ảnh và mở rộng sang trang soạn đầy đủ mà vẫn giữ bản nháp tạm thời.
 - Có thể mở hồ sơ tác giả từ bài đăng, tìm người dùng theo tên và nhận gợi ý liên hệ từ các claim đang được kiểm tra.
 - Tinh chỉnh responsive cho sidebar, hồ sơ và card bài đăng trên màn hình nhỏ.
-- Link Zalo/Messenger đang được xem xét thêm về luồng thao tác phía frontend.
+- Hỗ trợ công khai có chọn lọc số điện thoại, link Messenger và link Zalo trên hồ sơ người dùng.
 - Không triển khai bản đồ; địa điểm tiếp tục được lưu dưới dạng văn bản.
 
 ### Claim — Phase 3
@@ -263,8 +263,60 @@ npm run lint
 npm run build
 ```
 
-## Trạng thái phát triển
+## Các phase phát triển
 
-Phase 3 đã có domain model và luồng xác nhận claim cốt lõi. Các API lấy danh sách claim đã gửi/đã nhận, chuyển trạng thái review/reject và hủy claim đang là phần cần hoàn thiện để đồng bộ đầy đủ với giao diện frontend hiện có.
+### Phase 0 — Setup ✅ Hoàn thành
+
+- Khởi tạo Spring Boot, PostgreSQL và cấu hình JPA với `spring.jpa.hibernate.ddl-auto=validate`.
+- Schema ban đầu gồm 4 bảng `users`, `categories`, `posts` và `post_images`, cùng khóa ngoại và index phục vụ truy vấn bài đăng.
+- Tạo JPA entities và Spring Data repositories tương ứng.
+- Đây là phạm vi lịch sử của Phase 0. Schema hiện tại đã được mở rộng thành 8 bảng: thêm `claim_reports`, `claim_images`, `reports` và `notifications` ở các phase sau.
+
+### Phase 1 — Auth và Post Create/Read ✅ Hoàn thành
+
+- Xác thực dựa trên HTTP session: đăng ký, đăng nhập, lấy người dùng hiện tại, đăng xuất và gửi lại cookie bằng `withCredentials: true`.
+- Mật khẩu được hash bằng BCrypt; backend không lưu mật khẩu thô.
+- Tạo bài đăng thuộc `LOST`, `FOUND` hoặc `STOLEN`, xem danh sách và xem chi tiết bài đăng.
+- Quyền cập nhật và xóa bài đăng chưa nằm trong Phase 1; hai thao tác này được bổ sung ở Phase 4.
+
+### Phase 2 — Search/filter và upload ảnh ✅ Hoàn thành
+
+- Upload tối đa 4 ảnh cho mỗi bài đăng, lưu trên local disk và phục vụ qua `/images/posts/**`.
+- File được kiểm tra đồng thời MIME type, phần mở rộng (`jpg`, `jpeg`, `png`, `webp`) và giới hạn 5 MB mỗi ảnh; tổng multipart request tối đa 20 MB.
+- Search/filter bài đăng theo keyword, loại bài, category, location và status bằng Spring Data JPA Specification.
+- Kết quả hỗ trợ sắp xếp và phân trang. Khi lọc category `Khác`, hệ thống lấy cả bài chưa được phân loại.
+- **Comment:** từng nằm trong kế hoạch dưới dạng tính năng optional nhưng đã được lược bỏ vì chưa cần thiết và sẽ làm schema/nghiệp vụ phức tạp hơn.
+
+### Phase 3 — Claim report (“Đã tìm thấy? Báo lại”) ✅ Hoàn thành
+
+- Thêm `ClaimReport` và `ClaimImage`; mỗi claim bắt buộc có từ 1 đến 3 ảnh minh chứng.
+- Có API tạo claim, lấy claim đã gửi/đã nhận, lấy claim theo bài viết, nhận kiểm tra, từ chối, hủy và xác nhận hoàn tất.
+- Không cho chủ bài tự claim, không cho gửi claim trùng khi vẫn còn claim hoạt động và không nhận claim khi bài viết không còn `OPEN`.
+- Claim mới có trạng thái `SUBMITTED`. Thao tác “Tôi sẽ kiểm tra” chuyển claim sang `PENDING`; `REVIEWING` được giữ để tương thích dữ liệu cũ.
+- Luồng confirm chạy trong service có `@Transactional`, không dùng database trigger: claim được chọn thành `CONFIRMED`, các claim hoạt động khác (`SUBMITTED`, `PENDING`, `REVIEWING`) thành `REJECTED`, sau đó bài viết thành `RESOLVED`.
+- Các thay đổi quan trọng của claim đều phát notification cho bên liên quan.
+
+### Phase 4 — Quản trị và hoàn thiện vòng đời bài đăng ✅ Hoàn thành
+
+- **Edit post:** chỉ chủ bài được sửa trong 60 phút đầu. Năm field cho phép sửa là title, description, location, category và type.
+- **Delete post:** chỉ chủ bài được hard delete; ảnh trên disk được dọn và dữ liệu liên quan được cascade theo schema.
+- **Report:** người dùng có thể báo cáo bài của người khác theo `ReportReason`; unique constraint ngăn một tài khoản report cùng một bài nhiều lần.
+- **Admin:** dùng field `role` trên `User`, không tạo bảng admin riêng. Admin có thể xem report chờ xử lý, bác report hoặc duyệt để ẩn bài vi phạm.
+- **Blacklist:** dùng field `blacklisted` trên `User`. Admin có thể tìm, thêm hoặc gỡ tài khoản khỏi blacklist; tài khoản bị blacklist bị chặn đăng nhập và các API liên quan.
+- **Notification:** hỗ trợ report đã gửi, bài bị ẩn và toàn bộ sự kiện chính của claim; người dùng có thể xem và đánh dấu đã đọc.
+- **Comment:** tiếp tục được lược bỏ khỏi phạm vi vì cần thêm thay đổi database, kiểm duyệt và vòng đời nội dung riêng.
+
+### Phase 5 — Polish ✅ Hoàn thành phạm vi đã chọn
+
+- Hoàn thiện phân trang từ backend đến frontend: chuyển trang, tổng số bài và reset về trang đầu khi đổi bộ lọc.
+- Rà soát responsive cho navigation, sidebar, form, card, modal và trang hồ sơ.
+- Thêm lightbox ảnh tỷ lệ 16:9: ảnh dùng `object-contain`, chuyển qua lại khi có nhiều ảnh và animation mở/đóng về thumbnail.
+- Thêm popup tạo bài nhanh ở trang chủ, upload ảnh, xem trước và mở rộng sang trang tạo bài đầy đủ. Bản nháp cùng file ảnh chỉ giữ trong RAM và mất khi reload hoặc hủy.
+- Thêm cài đặt tài khoản: đổi tên, số điện thoại và mật khẩu sau khi xác minh mật khẩu hiện tại.
+- Thêm hồ sơ người dùng, tìm kiếm theo tên và điều hướng tới hồ sơ khi bấm tên tác giả bài đăng.
+- Thêm thông tin liên hệ gồm số điện thoại, Messenger và Zalo. Quyền hiển thị mặc định được bật và chủ tài khoản có thể tắt riêng từng mục.
+- Mục Liên hệ trên sidebar gợi ý các bên của claim đang ở `PENDING`/`REVIEWING`, tức sau thao tác “Tôi sẽ kiểm tra”; claim đã `CONFIRMED` không còn được gợi ý.
+- **Quên mật khẩu qua email:** có trong đề xuất ban đầu nhưng đã được lược bỏ, thay bằng Cài đặt tài khoản vì không cần SMTP và reset-token infrastructure.
+- **Bản đồ cho location:** có trong đề xuất ban đầu dưới dạng optional nhưng đã được lược bỏ; location tiếp tục là văn bản.
 
 Không commit thông tin đăng nhập cơ sở dữ liệu thật. Khi triển khai, nên đưa cấu hình database và đường dẫn upload sang biến môi trường hoặc file cấu hình riêng.
