@@ -22,7 +22,7 @@ The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đ�
 - Giao diện danh sách có điều hướng trang, tổng số bài và tự trở về trang đầu khi thay đổi bộ lọc.
 - Tải tối đa 4 ảnh cho mỗi bài đăng.
 
-### Phase 5 — Polish
+### Polish
 
 - Hoàn thiện phân trang từ API đến giao diện.
 - Thêm trang cài đặt tài khoản tại `/settings`.
@@ -32,7 +32,7 @@ The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đ�
 - Hỗ trợ công khai có chọn lọc số điện thoại, link Messenger và link Zalo trên hồ sơ người dùng.
 - Không triển khai bản đồ; địa điểm tiếp tục được lưu dưới dạng văn bản.
 
-### Claim — Phase 3
+### Phase 3
 
 - Gửi claim cho một bài đăng đang ở trạng thái `OPEN`.
 - Cung cấp mô tả nhận dạng, thời gian và địa điểm gặp mặt.
@@ -192,12 +192,12 @@ Mở địa chỉ do Vite hiển thị, thường là `http://localhost:5173`. B
 
 | Method | Endpoint | Mô tả |
 | --- | --- | --- |
-| `POST` | `/api/posts` | Tạo bài đăng — yêu cầu đăng nhập |
+| `POST` | `/api/posts` | Tạo bài đăng - yêu cầu đăng nhập |
 | `GET` | `/api/posts` | Tìm kiếm, lọc và phân trang |
 | `GET` | `/api/posts/all` | Lấy toàn bộ bài đăng |
 | `GET` | `/api/posts/mine` | Lấy bài đăng của người dùng hiện tại |
 | `GET` | `/api/posts/{id}` | Xem chi tiết bài đăng |
-| `POST` | `/api/posts/{id}/images` | Tải ảnh — chỉ tác giả bài đăng |
+| `POST` | `/api/posts/{id}/images` | Tải ảnh - chỉ tác giả bài đăng |
 
 Ví dụ tìm kiếm:
 
@@ -211,9 +211,9 @@ Các bộ lọc đều không bắt buộc. Mặc định API trả 10 bản ghi
 
 | Method | Endpoint | Mô tả |
 | --- | --- | --- |
-| `POST` | `/api/posts/{postId}/claims` | Tạo claim — yêu cầu đăng nhập |
-| `POST` | `/api/claims/{claimId}/images` | Tải ảnh minh chứng — chỉ người tạo claim |
-| `POST` | `/api/claims/{claimId}/confirm` | Xác nhận claim — chỉ chủ bài viết |
+| `POST` | `/api/posts/{postId}/claims` | Tạo claim - yêu cầu đăng nhập |
+| `POST` | `/api/claims/{claimId}/images` | Tải ảnh minh chứng - chỉ người tạo claim |
+| `POST` | `/api/claims/{claimId}/confirm` | Xác nhận claim - chỉ chủ bài viết |
 
 Ví dụ tạo claim:
 
@@ -265,21 +265,21 @@ npm run build
 
 ## Các phase phát triển
 
-### Phase 0 — Setup ✅ Hoàn thành
+### Phase 0 - Setup
 
 - Khởi tạo Spring Boot, PostgreSQL và cấu hình JPA với `spring.jpa.hibernate.ddl-auto=validate`.
 - Schema ban đầu gồm 4 bảng `users`, `categories`, `posts` và `post_images`, cùng khóa ngoại và index phục vụ truy vấn bài đăng.
 - Tạo JPA entities và Spring Data repositories tương ứng.
 - Đây là phạm vi lịch sử của Phase 0. Schema hiện tại đã được mở rộng thành 8 bảng: thêm `claim_reports`, `claim_images`, `reports` và `notifications` ở các phase sau.
 
-### Phase 1 — Auth và Post Create/Read ✅ Hoàn thành
+### Phase 1 - Auth và Post Create/Read
 
 - Xác thực dựa trên HTTP session: đăng ký, đăng nhập, lấy người dùng hiện tại, đăng xuất và gửi lại cookie bằng `withCredentials: true`.
 - Mật khẩu được hash bằng BCrypt; backend không lưu mật khẩu thô.
 - Tạo bài đăng thuộc `LOST`, `FOUND` hoặc `STOLEN`, xem danh sách và xem chi tiết bài đăng.
 - Quyền cập nhật và xóa bài đăng chưa nằm trong Phase 1; hai thao tác này được bổ sung ở Phase 4.
 
-### Phase 2 — Search/filter và upload ảnh ✅ Hoàn thành
+### Phase 2 - Search/filter và upload ảnh
 
 - Upload tối đa 4 ảnh cho mỗi bài đăng, lưu trên local disk và phục vụ qua `/images/posts/**`.
 - File được kiểm tra đồng thời MIME type, phần mở rộng (`jpg`, `jpeg`, `png`, `webp`) và giới hạn 5 MB mỗi ảnh; tổng multipart request tối đa 20 MB.
@@ -287,7 +287,7 @@ npm run build
 - Kết quả hỗ trợ sắp xếp và phân trang. Khi lọc category `Khác`, hệ thống lấy cả bài chưa được phân loại.
 - **Comment:** từng nằm trong kế hoạch dưới dạng tính năng optional nhưng đã được lược bỏ vì chưa cần thiết và sẽ làm schema/nghiệp vụ phức tạp hơn.
 
-### Phase 3 — Claim report (“Đã tìm thấy? Báo lại”) ✅ Hoàn thành
+### Phase 3 - Claim report (“Đã tìm thấy? Báo lại”)
 
 - Thêm `ClaimReport` và `ClaimImage`; mỗi claim bắt buộc có từ 1 đến 3 ảnh minh chứng.
 - Có API tạo claim, lấy claim đã gửi/đã nhận, lấy claim theo bài viết, nhận kiểm tra, từ chối, hủy và xác nhận hoàn tất.
@@ -296,7 +296,7 @@ npm run build
 - Luồng confirm chạy trong service có `@Transactional`, không dùng database trigger: claim được chọn thành `CONFIRMED`, các claim hoạt động khác (`SUBMITTED`, `PENDING`, `REVIEWING`) thành `REJECTED`, sau đó bài viết thành `RESOLVED`.
 - Các thay đổi quan trọng của claim đều phát notification cho bên liên quan.
 
-### Phase 4 — Quản trị và hoàn thiện vòng đời bài đăng ✅ Hoàn thành
+### Phase 4 - Quản trị và hoàn thiện vòng đời bài đăng
 
 - **Edit post:** chỉ chủ bài được sửa trong 60 phút đầu. Năm field cho phép sửa là title, description, location, category và type.
 - **Delete post:** chỉ chủ bài được hard delete; ảnh trên disk được dọn và dữ liệu liên quan được cascade theo schema.
@@ -306,7 +306,7 @@ npm run build
 - **Notification:** hỗ trợ report đã gửi, bài bị ẩn và toàn bộ sự kiện chính của claim; người dùng có thể xem và đánh dấu đã đọc.
 - **Comment:** tiếp tục được lược bỏ khỏi phạm vi vì cần thêm thay đổi database, kiểm duyệt và vòng đời nội dung riêng.
 
-### Phase 5 — Polish ✅ Hoàn thành phạm vi đã chọn
+### Phase 5 - Polish
 
 - Hoàn thiện phân trang từ backend đến frontend: chuyển trang, tổng số bài và reset về trang đầu khi đổi bộ lọc.
 - Rà soát responsive cho navigation, sidebar, form, card, modal và trang hồ sơ.
