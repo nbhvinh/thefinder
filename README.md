@@ -1,6 +1,6 @@
 # The Finder
 
-> Dự án hiện đang ở **Phase 3 — Claim/phiếu hỗ trợ nhận và trao trả đồ** và vẫn đang được phát triển.
+> Dự án vẫn đang được phát triển.
 
 The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đồ**, **tìm thấy đồ** hoặc **bị trộm**. Ngoài việc tìm kiếm bài đăng, người dùng đã có thể gửi phiếu claim kèm thông tin nhận dạng và ảnh minh chứng để phối hợp trao trả món đồ.
 
@@ -52,7 +52,7 @@ thefinder/
 ├── thefinder backend/
 │   ├── pom.xml
 │   ├── mvnw, mvnw.cmd
-│   ├── phase0-schema-setup.md
+│   ├── database.sql            # Khởi tạo toàn bộ PostgreSQL schema và dữ liệu nền
 │   └── src/main/
 │       ├── java/com/nbhv/thefinder/
 │       │   ├── config/          # Security, CORS và static resources
@@ -84,45 +84,41 @@ thefinder/
 
 ### 1. Chuẩn bị cơ sở dữ liệu
 
-Tạo database PostgreSQL:
+Đảm bảo PostgreSQL đang chạy, sau đó tạo database rỗng và chạy file khởi tạo duy nhất từ thư mục gốc của dự án:
 
-```sql
-CREATE DATABASE thefinder;
+```bash
+createdb -U postgres thefinder
+psql -U postgres -d thefinder -f "thefinder backend/database.sql"
 ```
 
-Chạy phần SQL trong [`thefinder backend/phase0-schema-setup.md`](thefinder%20backend/phase0-schema-setup.md) để tạo schema nền và dữ liệu danh mục.
+Nếu lệnh `createdb` không có sẵn, có thể tạo database bằng `psql`:
 
-Phase 3 cần thêm hai bảng claim sau:
-
-```sql
-CREATE TABLE claim_reports (
-    id              BIGSERIAL PRIMARY KEY,
-    post_id         BIGINT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    claimant_id     BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    description     TEXT,
-    meet_time       TIMESTAMP,
-    meet_location   VARCHAR(500),
-    status          VARCHAR(255) NOT NULL DEFAULT 'SUBMITTED',
-    created_at      TIMESTAMP NOT NULL DEFAULT now()
-);
-
-CREATE INDEX idx_claim_reports_post ON claim_reports(post_id);
-CREATE INDEX idx_claim_reports_claimant ON claim_reports(claimant_id);
-
-CREATE TABLE claim_images (
-    id                BIGSERIAL PRIMARY KEY,
-    claim_report_id   BIGINT NOT NULL REFERENCES claim_reports(id) ON DELETE CASCADE,
-    image_url         VARCHAR(500) NOT NULL
-);
-
-CREATE INDEX idx_claim_images_report ON claim_images(claim_report_id);
+```bash
+psql -U postgres -d postgres -c "CREATE DATABASE thefinder;"
+psql -U postgres -d thefinder -f "thefinder backend/database.sql"
 ```
 
-Các trạng thái claim hiện có: `SUBMITTED`, `PENDING`, `REVIEWING`, `CONFIRMED`, `REJECTED`. `REVIEWING` được giữ lại để tương thích với dữ liệu cũ.
+Nhập mật khẩu của tài khoản PostgreSQL khi được hỏi. Nếu username hoặc tên database khác, thay `postgres` và `thefinder` trong các lệnh trên cho phù hợp. File [`database.sql`](thefinder%20backend/database.sql) tạo toàn bộ bảng, khóa ngoại, index và dữ liệu danh mục cần thiết; chỉ chạy trên database mới, rỗng.
+
+Nếu cần làm lại database phát triển từ đầu (toàn bộ dữ liệu cũ sẽ bị xóa):
+
+```bash
+dropdb -U postgres thefinder
+createdb -U postgres thefinder
+psql -U postgres -d thefinder -f "thefinder backend/database.sql"
+```
 
 ### 2. Chạy backend
 
-Cập nhật kết nối PostgreSQL trong `thefinder backend/src/main/resources/application.properties`, sau đó chạy:
+Mặc định backend kết nối tới `jdbc:postgresql://localhost:5432/thefinder` bằng username `postgres` và password `123456`. Có thể sửa `thefinder backend/src/main/resources/application.properties`, hoặc nên truyền biến môi trường mà không sửa file:
+
+```bash
+export DB_URL=jdbc:postgresql://localhost:5432/thefinder
+export DB_USERNAME=postgres
+export DB_PASSWORD=mat_khau_postgresql
+```
+
+Sau đó chạy:
 
 ```bash
 cd "thefinder backend"
