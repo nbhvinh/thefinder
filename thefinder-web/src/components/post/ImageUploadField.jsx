@@ -37,10 +37,10 @@ export default function ImageUploadField({ files, onChange, maxFiles = 4, label 
     <div className="text-base text-black">
       <span>{label}</span>
       <p className="mt-1 text-xs text-slate-500">Hỗ trợ JPG, JPEG, PNG, WebP; tối đa 5 MB mỗi ảnh.</p>
-      <div className="mt-2 flex items-center gap-[5px]">
-        <label htmlFor={inputId} aria-label="Chọn ảnh vật phẩm" className="grid h-[30px] w-[30px] shrink-0 cursor-pointer place-items-center rounded-md border border-[#1882ac] bg-white text-xl leading-none text-[#237596] hover:bg-[#eef8fc]">+</label>
+      <div className="mt-3 grid gap-2" style={{ gridTemplateColumns: `repeat(${maxFiles}, minmax(0, 1fr))` }}>
+        {previews.map((preview, index) => <span key={`${preview.file.name}-${preview.file.lastModified}`} className="relative aspect-square min-w-0"><img src={preview.url} alt={`Ảnh xem trước ${preview.file.name}`} className="h-full w-full rounded-xl object-cover" /><button type="button" aria-label={`Xóa ${preview.file.name}`} onClick={() => onChange(files.filter((_, fileIndex) => fileIndex !== index))} className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-red-600 text-sm text-white shadow">×</button></span>)}
+        {files.length < maxFiles && <label htmlFor={inputId} aria-label="Chọn ảnh vật phẩm" className="grid aspect-square w-full cursor-pointer place-items-center rounded-xl border border-dashed border-[#1882ac] bg-white text-4xl font-light leading-none text-[#237596] transition-colors hover:bg-[#eef8fc]">+</label>}
         <input id={inputId} type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={selectFiles} className="sr-only" />
-        {previews.map((preview, index) => <span key={`${preview.file.name}-${preview.file.lastModified}`} className="relative"><img src={preview.url} alt={`Ảnh xem trước ${preview.file.name}`} className="h-[54px] w-[54px] rounded-lg object-cover" /><button type="button" aria-label={`Xóa ${preview.file.name}`} onClick={() => onChange(files.filter((_, fileIndex) => fileIndex !== index))} className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full bg-red-600 text-xs text-white">×</button></span>)}
       </div>
       {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
     </div>

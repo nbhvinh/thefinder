@@ -29,6 +29,21 @@ public class User {
 
     private String phone;
 
+    @Column(name = "messenger_url")
+    private String messengerUrl;
+
+    @Column(name = "zalo_url")
+    private String zaloUrl;
+
+    @Column(name = "show_phone", nullable = false)
+    private boolean showPhone = true;
+
+    @Column(name = "show_messenger", nullable = false)
+    private boolean showMessenger = true;
+
+    @Column(name = "show_zalo", nullable = false)
+    private boolean showZalo = true;
+
     @Column(name = "avatar_url")
     private String avatarUrl;
 

@@ -1,0 +1,12 @@
+ALTER TABLE users ADD COLUMN IF NOT EXISTS messenger_url VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS zalo_url VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS show_phone BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS show_messenger BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS show_zalo BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE users ALTER COLUMN show_phone SET DEFAULT TRUE;
+ALTER TABLE users ALTER COLUMN show_messenger SET DEFAULT TRUE;
+ALTER TABLE users ALTER COLUMN show_zalo SET DEFAULT TRUE;
+
+-- Chạy migration này một lần để bật mặc định cho các tài khoản đã tồn tại.
+UPDATE users SET show_phone = TRUE, show_messenger = TRUE, show_zalo = TRUE;

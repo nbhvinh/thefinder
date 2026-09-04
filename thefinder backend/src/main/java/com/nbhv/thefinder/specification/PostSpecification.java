@@ -28,9 +28,14 @@ public class PostSpecification {
             type == null ? cb.conjunction() : cb.equal(root.get("type"), type);
     }
 
-    public static Specification<Post> hasCategory(Long categoryId) {
-        return (root, query, cb) ->
-            categoryId == null ? cb.conjunction() : cb.equal(root.get("category").get("id"), categoryId);
+    public static Specification<Post> hasCategory(Long categoryId, boolean includeUncategorized) {
+        return (root, query, cb) -> {
+            if (categoryId == null) return cb.conjunction();
+            var selectedCategory = cb.equal(root.get("category").get("id"), categoryId);
+            return includeUncategorized
+                    ? cb.or(selectedCategory, cb.isNull(root.get("category")))
+                    : selectedCategory;
+        };
     }
 
     public static Specification<Post> hasLocation(String location) {

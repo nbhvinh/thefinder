@@ -11,13 +11,26 @@ The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đ�
 - Đăng ký, đăng nhập và đăng xuất bằng HTTP session.
 - Mật khẩu được mã hóa bằng BCrypt.
 - Xem thông tin tài khoản và các bài viết cá nhân.
+- Cài đặt tài khoản: thay đổi tên người dùng, số điện thoại và mật khẩu sau khi xác minh mật khẩu hiện tại.
+- Hồ sơ công khai cho phép chủ tài khoản chọn hiển thị số điện thoại, Messenger và Zalo.
 
 ### Bài đăng
 
 - Tạo bài đăng thuộc các loại `LOST`, `FOUND`, `STOLEN`.
 - Xem danh sách và chi tiết bài đăng.
 - Tìm kiếm, lọc và phân trang theo từ khóa, loại, danh mục, địa điểm và trạng thái.
+- Giao diện danh sách có điều hướng trang, tổng số bài và tự trở về trang đầu khi thay đổi bộ lọc.
 - Tải tối đa 4 ảnh cho mỗi bài đăng.
+
+### Phase 5 — Polish
+
+- Hoàn thiện phân trang từ API đến giao diện.
+- Thêm trang cài đặt tài khoản tại `/settings`.
+- Hỗ trợ tạo nhanh bài đăng bằng popup ở trang chủ, có xem trước, tải ảnh và mở rộng sang trang soạn đầy đủ mà vẫn giữ bản nháp tạm thời.
+- Có thể mở hồ sơ tác giả từ bài đăng, tìm người dùng theo tên và nhận gợi ý liên hệ từ các claim đang được kiểm tra.
+- Tinh chỉnh responsive cho sidebar, hồ sơ và card bài đăng trên màn hình nhỏ.
+- Link Zalo/Messenger đang được xem xét thêm về luồng thao tác phía frontend.
+- Không triển khai bản đồ; địa điểm tiếp tục được lưu dưới dạng văn bản.
 
 ### Claim — Phase 3
 
@@ -136,6 +149,12 @@ Backend chạy mặc định tại `http://localhost:8080`.
 
 > Dự án dùng `spring.jpa.hibernate.ddl-auto=validate`, vì vậy toàn bộ schema phải tồn tại trước khi backend khởi động.
 
+Nếu database được tạo trước khi có tính năng tùy chọn liên hệ Phase 5, chạy migration một lần:
+
+```bash
+psql -U postgres -d thefinder -f "thefinder backend/database-migrations/phase5_contact_preferences.sql"
+```
+
 ### 3. Chạy frontend
 
 Mở terminal khác tại thư mục gốc:
@@ -157,7 +176,17 @@ Mở địa chỉ do Vite hiển thị, thường là `http://localhost:5173`. B
 | `POST` | `/api/auth/register` | Đăng ký tài khoản |
 | `POST` | `/api/auth/login` | Đăng nhập và tạo session |
 | `GET` | `/api/auth/me` | Lấy người dùng hiện tại |
+| `PUT` | `/api/auth/me` | Đổi tên, số điện thoại và tùy chọn đổi mật khẩu |
 | `POST` | `/api/auth/logout` | Đăng xuất và hủy session |
+
+### Người dùng và liên hệ
+
+| Method | Endpoint | Mô tả |
+| --- | --- | --- |
+| `GET` | `/api/users/search?query=...` | Tìm người dùng theo tên |
+| `GET` | `/api/users/{id}` | Xem hồ sơ và thông tin liên hệ được công khai |
+| `GET` | `/api/users/{id}/posts` | Lấy bài đăng công khai của người dùng |
+| `GET` | `/api/users/contacts` | Gợi ý liên hệ từ claim đang được kiểm tra |
 
 ### Bài đăng
 

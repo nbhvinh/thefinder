@@ -3,10 +3,12 @@ import { useState } from 'react';
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import PrivatePostList from '../../components/post/PrivatePostList';
 import RecentEventsBar from '../../components/post/RecentEventsBar';
+import CreatePostModal from '../../components/post/CreatePostModal';
 
 export default function HomePage() {
   const [searchParams] = useSearchParams();
   const [categoryId, setCategoryId] = useState(null);
+  const [creatingPost, setCreatingPost] = useState(false);
   const navigate = useNavigate();
   const keyword = searchParams.get('keyword') || '';
   const searchedCategoryId = Number(searchParams.get('categoryId')) || null;
@@ -24,12 +26,13 @@ export default function HomePage() {
       <main>
         {!isSearchMode && <div className="mx-auto w-[calc(100%-2rem)] max-w-[780px] pt-5 sm:w-[calc(100%-3rem)]">
           <section className="rounded-[26px] border border-[#237596] px-5 py-4 sm:px-7" aria-label="Tạo bài đăng mới">
-            <Link
-              to="/posts/create/lost"
+            <button
+              type="button"
+              onClick={() => setCreatingPost(true)}
               className="flex h-12 w-full items-center rounded-full border border-[#aeb4b7] bg-white px-5 text-sm text-black/65 transition-colors hover:border-[#237596] hover:bg-[#f7fbfd] sm:text-base"
             >
               Bắt đầu bài đăng tìm đồ
-            </Link>
+            </button>
 
             <nav className="mt-3 grid grid-cols-3 items-center text-center" aria-label="Loại bài đăng">
               <Link to="/posts/create/lost" className="px-2 py-2 text-sm font-medium text-black hover:text-[#237596] sm:text-base">
@@ -50,6 +53,7 @@ export default function HomePage() {
         </div>}
         <PrivatePostList keyword={keyword} categoryId={activeCategoryId} />
       </main>
+      {creatingPost && <CreatePostModal onClose={() => setCreatingPost(false)} />}
     </div>
   );
 }

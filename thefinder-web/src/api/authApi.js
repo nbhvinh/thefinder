@@ -15,3 +15,7 @@ export function logout() {
 export function getCurrentUser() {
   return axiosClient.get('/auth/me');
 }
+
+export function updateAccount(payload) {
+  return axiosClient.put('/auth/me', payload);
+}

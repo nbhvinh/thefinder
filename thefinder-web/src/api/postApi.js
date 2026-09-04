@@ -5,8 +5,13 @@ export function createPost(payload) {
 }
 
 export async function getPosts(params = {}) {
+  const page = await getPostsPage(params);
+  return page.content ?? page;
+}
+
+export async function getPostsPage(params = {}) {
   const response = await axiosClient.get('/posts', { params: { size: 12, sort: 'createdAt,desc', ...params } });
-  return response.data.content ?? response.data;
+  return response.data;
 }
 
 export async function getPost(postId) {

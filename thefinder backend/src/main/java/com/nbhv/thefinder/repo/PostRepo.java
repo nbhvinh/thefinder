@@ -15,6 +15,7 @@ public interface PostRepo extends JpaRepository<Post, Long>, JpaSpecificationExe
     List<Post> findByCategoryId(Long categoryId);
     List<Post> findByTitleContainingIgnoreCase(String keyword);
     List<Post> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<Post> findByUserIdAndHiddenFalseOrderByCreatedAtDesc(Long userId);
     List<Post> findByHiddenFalse(Sort sort);
     Optional<Post> findByIdAndHiddenFalse(Long id);
 }

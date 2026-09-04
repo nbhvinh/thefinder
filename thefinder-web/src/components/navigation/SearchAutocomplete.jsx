@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getCategories } from '../../api/categoryApi';
 import { getPosts } from '../../api/postApi';
+import { searchUsers } from '../../api/userApi';
+import { useNavigate } from 'react-router-dom';
 
 const fallbackCategories = [
   { id: 1, name: 'Balo/Túi xách' },
@@ -27,9 +29,11 @@ function normalize(value) {
 export default function SearchAutocomplete({ id, value, onChange, onSearch, onFocusChange, textSize = 'text-sm', inputClassName = '' }) {
   const [titles, setTitles] = useState([]);
   const [categories, setCategories] = useState(fallbackCategories);
+  const [users, setUsers] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let active = true;
@@ -41,32 +45,49 @@ export default function SearchAutocomplete({ id, value, onChange, onSearch, onFo
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const query = value.trim();
+    if (query.length < 2 || query.startsWith('#')) return undefined;
+    let active = true;
+    const timer = window.setTimeout(() => searchUsers(query).then((data) => {
+      if (active) setUsers(Array.isArray(data) ? data : []);
+    }).catch(() => { if (active) setUsers([]); }), 250);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [value]);
+
   const suggestions = useMemo(() => {
     const isTagSearch = value.trimStart().startsWith('#');
     const keyword = normalize(isTagSearch ? value.trimStart().slice(1) : value);
     if (!keyword && !isTagSearch) return [];
     const options = isTagSearch
       ? categories.map((category) => ({ label: `#${category.name}`, value: `#${category.name}`, categoryId: category.id }))
-      : [...titles, ...categories.map((category) => category.name)].map((option) => ({ label: option, value: option }));
+      : [
+          ...(keyword.length >= 2 ? users.map((user) => ({ label: user.fullName, value: user.fullName, userId: user.id, kind: 'Người dùng' })) : []),
+          ...titles.map((title) => ({ label: title, value: title })),
+          ...categories.map((category) => ({ label: category.name, value: category.name })),
+        ];
     return options
       .filter((option) => !keyword || normalize(option.label.replace(/^#/, '')).includes(keyword))
       .sort((a, b) => normalize(a.label.replace(/^#/, '')).startsWith(keyword) === normalize(b.label.replace(/^#/, '')).startsWith(keyword) ? a.label.localeCompare(b.label, 'vi') : normalize(a.label.replace(/^#/, '')).startsWith(keyword) ? -1 : 1)
       .slice(0, 7);
-  }, [categories, titles, value]);
+  }, [categories, titles, users, value]);
 
   function selectSuggestion(suggestion) {
     onChange(suggestion.value);
     setIsOpen(false);
     setActiveIndex(-1);
-    onSearch(suggestion.value, suggestion.categoryId);
+    if (suggestion.userId) navigate(`/users/${suggestion.userId}`);
+    else onSearch(suggestion.value, suggestion.categoryId);
     inputRef.current?.blur();
   }
 
   function submitSearch() {
     const tag = value.trimStart().startsWith('#') ? normalize(value.trimStart().slice(1)) : '';
     const matchedCategory = tag ? categories.find((category) => normalize(category.name) === tag) : null;
+    const matchedUser = !tag ? users.find((user) => normalize(user.fullName) === normalize(value)) : null;
     setIsOpen(false);
-    onSearch(value, matchedCategory?.id);
+    if (matchedUser) navigate(`/users/${matchedUser.id}`);
+    else onSearch(value, matchedCategory?.id);
   }
 
   function handleKeyDown(event) {
@@ -125,9 +146,9 @@ export default function SearchAutocomplete({ id, value, onChange, onSearch, onFo
       {isOpen && suggestions.length > 0 && (
         <ul id={`${id}-suggestions`} role="listbox" className="absolute left-0 top-full z-[60] mt-2 w-full min-w-72 overflow-hidden rounded-xl border border-[#1882ac] bg-white p-1.5 shadow-lg">
           {suggestions.map((suggestion, index) => (
-            <li key={`${suggestion.value}-${suggestion.categoryId ?? 'text'}`} id={`${id}-suggestion-${index}`} role="option" aria-selected={index === activeIndex}>
+            <li key={`${suggestion.userId ? `user-${suggestion.userId}` : `${suggestion.value}-${suggestion.categoryId ?? 'text'}`}`} id={`${id}-suggestion-${index}`} role="option" aria-selected={index === activeIndex}>
               <button type="button" onPointerDown={(event) => { event.preventDefault(); selectSuggestion(suggestion); }} className={`block w-full rounded-lg px-4 py-2.5 text-left text-sm ${index === activeIndex ? 'bg-[#eef8fc] text-[#237596]' : 'text-black hover:bg-[#eef8fc]'}`}>
-                {suggestion.label}
+                <span className="flex items-center justify-between gap-3"><span className="truncate">{suggestion.label}</span>{suggestion.kind && <span className="shrink-0 text-xs text-[#237596]">{suggestion.kind}</span>}</span>
               </button>
             </li>
           ))}

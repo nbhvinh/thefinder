@@ -13,6 +13,7 @@ import com.nbhv.thefinder.entity.User;
 public interface UserRepo extends JpaRepository<User, Long> {
    Optional<User> findByEmail(String email);
    boolean existsByEmail(String email);
+   List<User> findTop8ByFullNameContainingIgnoreCaseAndBlacklistedFalseOrderByFullNameAsc(String query);
 
    @Query("""
            SELECT u FROM User u

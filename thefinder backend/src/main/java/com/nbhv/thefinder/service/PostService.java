@@ -55,11 +55,16 @@ public class PostService {
 
     public Page<PostResponse> searchPosts(String keyword, PostType type, Long categoryId,
                                        String location, PostStatus status, Pageable pageable) {
+        boolean includeUncategorized = categoryId != null
+                && categoryrepo.findById(categoryId)
+                        .map(category -> "Khác".equalsIgnoreCase(category.getName().trim()))
+                        .orElse(false);
+
         Specification<Post> spec = Specification
             .where(PostSpecification.isVisible())
             .and(PostSpecification.hasKeyword(keyword))
             .and(PostSpecification.hasType(type))
-            .and(PostSpecification.hasCategory(categoryId))
+            .and(PostSpecification.hasCategory(categoryId, includeUncategorized))
             .and(PostSpecification.hasLocation(location))
             .and(PostSpecification.hasStatus(status));
 
