@@ -32,7 +32,7 @@ The Finder là nền tảng web hỗ trợ cộng đồng đăng tin **mất đ�
 - Hỗ trợ công khai có chọn lọc số điện thoại, link Messenger và link Zalo trên hồ sơ người dùng.
 - Không triển khai bản đồ; địa điểm tiếp tục được lưu dưới dạng văn bản.
 
-### Phase 3
+### Claim
 
 - Gửi claim cho một bài đăng đang ở trạng thái `OPEN`.
 - Cung cấp mô tả nhận dạng, thời gian và địa điểm gặp mặt.
