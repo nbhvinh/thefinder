@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { reportPost } from '../../api/postApi';
 import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 import { Link } from 'react-router-dom';
+import SwipeablePostImage from './SwipeablePostImage';
 
 const reportReasons = [
   { value: 'SPAM', label: 'Spam' },
@@ -37,7 +38,13 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   const [imageFailed, setImageFailed] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageDrag, setImageDrag] = useState({ x: 0, y: 0, scale: 1, returning: false });
+  const cardCarouselRef = useRef(null);
+  const previewCarouselRef = useRef(null);
+  const cardImageRef = useRef(null);
+  const previewPanelRef = useRef(null);
   const reportRef = useRef(null);
+  const suppressImageClickUntilRef = useRef(0);
   useBodyScrollLock(Boolean(imagePreview));
 
   useEffect(() => {
@@ -61,21 +68,42 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   const claimButtonDisabled = isResolved || isClosed || Boolean(claimStatus) || isOwner;
 
   function selectImage(index) {
+    if (index === currentImageIndex) return;
     setImageFailed(false);
     setCurrentImageIndex(index);
   }
 
   function showPreviousImage() {
-    selectImage((currentImageIndex - 1 + imageUrls.length) % imageUrls.length);
+    (imagePreview ? previewCarouselRef : cardCarouselRef).current?.step(-1);
   }
 
   function showNextImage() {
-    selectImage((currentImageIndex + 1) % imageUrls.length);
+    (imagePreview ? previewCarouselRef : cardCarouselRef).current?.step(1);
+  }
+
+  function suppressImageClick() {
+    suppressImageClickUntilRef.current = Date.now() + 500;
+  }
+
+  function captureImageClick(event) {
+    if (Date.now() < suppressImageClickUntilRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
 
   function closeImagePreview() {
     if (!imagePreview || imagePreview.closing) return;
-    setImagePreview((current) => ({ ...current, closing: true }));
+    const target = cardImageRef.current?.getBoundingClientRect();
+    const panel = previewPanelRef.current;
+    setImagePreview((current) => ({
+      ...current, closing: true,
+      ...(target && panel ? {
+        originX: target.left + target.width / 2 - window.innerWidth / 2,
+        originY: target.top + target.height / 2 - window.innerHeight / 2,
+        scale: Math.min(target.width / panel.offsetWidth, target.height / panel.offsetHeight),
+      } : {}),
+    }));
     window.setTimeout(() => setImagePreview(null), 300);
   }
 
@@ -87,12 +115,12 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
         window.setTimeout(() => setImagePreview(null), 300);
       }
       if (event.key === 'ArrowLeft' && imageUrls.length > 1) {
-        setImageFailed(false);
-        setCurrentImageIndex((index) => (index - 1 + imageUrls.length) % imageUrls.length);
+        event.preventDefault();
+        previewCarouselRef.current?.step(-1);
       }
       if (event.key === 'ArrowRight' && imageUrls.length > 1) {
-        setImageFailed(false);
-        setCurrentImageIndex((index) => (index + 1) % imageUrls.length);
+        event.preventDefault();
+        previewCarouselRef.current?.step(1);
       }
     };
     window.addEventListener('keydown', handlePreviewKeys);
@@ -100,12 +128,14 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   }, [imagePreview, imageUrls.length]);
 
   function openImagePreview(event) {
+    setImageDrag({ x: 0, y: 0, scale: 1, returning: false });
     const bounds = event.currentTarget.getBoundingClientRect();
-    const targetWidth = Math.min(1280, window.innerWidth - 32, (window.innerHeight - 32) * (16 / 9));
+    const aspectRatio = window.matchMedia('(min-width: 768px)').matches ? 16 / 9 : 9 / 16;
+    const targetWidth = Math.min(1280, window.innerWidth - 32, (window.innerHeight - 32) * aspectRatio);
     setImagePreview({
       originX: bounds.left + bounds.width / 2 - window.innerWidth / 2,
       originY: bounds.top + bounds.height / 2 - window.innerHeight / 2,
-      scale: Math.max(0.08, Math.min(bounds.width / targetWidth, bounds.height / (targetWidth * 9 / 16))),
+      scale: Math.max(0.08, Math.min(bounds.width / targetWidth, bounds.height / (targetWidth / aspectRatio))),
     });
   }
 
@@ -134,8 +164,8 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
         {typeLabel && <span className={`mr-2 inline-block align-[0.2em] rounded-full px-3 py-1 text-sm font-semibold ${typeLabelStyle}`}>{typeLabel}</span>}
         <h2 className="inline break-words text-2xl text-black">{post.title}</h2>
       </div>
-      <div className="group relative grid min-h-[220px] w-full shrink-0 self-start overflow-hidden rounded-[25px] bg-[#d9d9d9] md:h-[292px]">
-        {hasImage ? <button type="button" onClick={openImagePreview} aria-label={`Phóng to ảnh ${currentImageIndex + 1} của bài đăng ${post.title}`} className="h-full w-full cursor-zoom-in overflow-hidden"><img src={imageUrls[currentImageIndex]} onError={() => setImageFailed(true)} alt={`Ảnh ${currentImageIndex + 1} của bài đăng ${post.title}`} className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.02]" /></button> : <p className="place-self-center px-6 text-center text-base text-slate-500">Không có hình ảnh đính kèm</p>}
+      <div onClickCapture={captureImageClick} className="group relative grid aspect-[8/5] w-full shrink-0 touch-pan-y touch-pinch-zoom self-start overflow-hidden rounded-[25px] bg-[#d9d9d9] md:aspect-auto md:h-[292px] md:min-h-[220px]">
+        {hasImage ? <button ref={cardImageRef} type="button" onClick={openImagePreview} aria-label={`Phóng to ảnh ${currentImageIndex + 1} của bài đăng ${post.title}`} className="absolute inset-0 h-full w-full cursor-zoom-in overflow-hidden"><SwipeablePostImage ref={cardCarouselRef} key={currentImageIndex} urls={imageUrls} index={currentImageIndex} title={post.title} onSelect={selectImage} onDrag={suppressImageClick} onError={() => setImageFailed(true)} /></button> : <p className="place-self-center px-6 text-center text-base text-slate-500">Không có hình ảnh đính kèm</p>}
         {hasMultipleImages && (
           <div className="pointer-events-none absolute inset-0 opacity-100 transition-opacity duration-200 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100">
             <button type="button" onClick={showPreviousImage} aria-label="Xem ảnh trước" className="pointer-events-auto absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/75 text-black shadow-sm transition-colors hover:bg-white"><ChevronLeft size={30} strokeWidth={2.5} /></button>
@@ -179,9 +209,9 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
         {isReportOpen && <div className="absolute right-0 top-full mt-2 w-28 rounded-lg border border-slate-200 bg-white p-1 shadow-lg"><button disabled={reported} type="button" onClick={() => { setIsReportOpen(false); setIsReportFormOpen(true); }} className="block w-full rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 disabled:text-slate-400">{reported ? 'Đã báo cáo' : 'Báo cáo'}</button></div>}
       </div>}
       {imagePreview && createPortal(<div className={`image-lightbox-backdrop fixed inset-0 z-[140] grid place-items-center bg-black/40 p-4 ${imagePreview.closing ? 'image-lightbox-closing pointer-events-none' : ''}`} role="dialog" aria-modal="true" aria-label={`Xem ảnh bài đăng ${post.title}`} onClick={closeImagePreview}>
-        <section onClick={(event) => event.stopPropagation()} style={{ '--preview-origin-x': `${imagePreview.originX}px`, '--preview-origin-y': `${imagePreview.originY}px`, '--preview-origin-scale': imagePreview.scale }} className="image-lightbox-panel relative aspect-video w-[min(1280px,calc(100vw-2rem),calc((100vh-2rem)*16/9))] overflow-hidden rounded-2xl border border-white/40 bg-slate-600/45 shadow-2xl">
-          <img src={imageUrls[currentImageIndex]} alt={`Ảnh ${currentImageIndex + 1} phóng to của bài đăng ${post.title}`} className="h-full w-full object-contain" />
-          <button type="button" onClick={closeImagePreview} aria-label="Đóng ảnh phóng to" className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white/90 text-slate-700 shadow-md hover:bg-white"><XCircle className="h-6 w-6" /></button>
+        <section ref={previewPanelRef} onClickCapture={captureImageClick} onClick={(event) => event.stopPropagation()} style={{ '--preview-origin-x': `${imagePreview.originX}px`, '--preview-origin-y': `${imagePreview.originY}px`, '--preview-origin-scale': imagePreview.scale, '--preview-drag-x': `${imageDrag.x}px`, '--preview-drag-y': `${imageDrag.y}px`, '--preview-drag-scale': imageDrag.scale, transform: `translate(${imageDrag.x}px, ${imageDrag.y}px) scale(${imageDrag.scale})`, transition: imageDrag.returning ? 'transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1)' : 'none' }} className="image-lightbox-panel relative aspect-[9/16] w-[min(calc(100vw-2rem),calc((100dvh-2rem)*9/16))] touch-pinch-zoom md:touch-pan-y overflow-hidden rounded-2xl border border-white/40 bg-slate-600/45 shadow-2xl md:aspect-video md:w-[min(1280px,calc(100vw-2rem),calc((100dvh-2rem)*16/9))]">
+          <SwipeablePostImage ref={previewCarouselRef} key={currentImageIndex} urls={imageUrls} index={currentImageIndex} title={post.title} contain onSelect={selectImage} onDrag={suppressImageClick} onVerticalDrag={setImageDrag} onDismiss={closeImagePreview} />
+          <button type="button" onClick={closeImagePreview} aria-label="Đóng ảnh phóng to" className="absolute right-3 top-3 grid h-11 w-11 place-items-center rounded-full bg-red-600 text-white shadow-md hover:bg-red-700"><XCircle className="h-6 w-6" /></button>
           {hasMultipleImages && <>
             <button type="button" onClick={showPreviousImage} aria-label="Xem ảnh trước" className="absolute left-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-black shadow-md hover:bg-white"><ChevronLeft className="h-8 w-8" /></button>
             <button type="button" onClick={showNextImage} aria-label="Xem ảnh tiếp theo" className="absolute right-3 top-1/2 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/85 text-black shadow-md hover:bg-white"><ChevronRight className="h-8 w-8" /></button>

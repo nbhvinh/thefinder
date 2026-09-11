@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { getNotifications, markNotificationRead } from '../../api/notificationApi';
+import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 
 function notificationLink(notification) {
   if (notification.type === 'POST_HIDDEN') return '/profile';
@@ -26,6 +27,8 @@ export default function NotificationCenter() {
   const [showAll, setShowAll] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false);
   const rootRef = useRef(null);
+  const dialogRef = useRef(null);
+  useBodyScrollLock(showAll);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -59,7 +62,39 @@ export default function NotificationCenter() {
     return () => document.removeEventListener('pointerdown', close);
   }, []);
 
+  useEffect(() => {
+    if (!showAll) return undefined;
+    const previousFocus = document.activeElement;
+    dialogRef.current?.querySelector('button')?.focus();
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setShowAll(false);
+      if (event.key !== 'Tab') return;
+      const focusable = dialogRef.current?.querySelectorAll('button, a[href]');
+      if (!focusable?.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    };
+  }, [showAll]);
+
   function togglePanel() {
+    if (window.matchMedia('(max-width: 1023px)').matches) {
+      setOpen(false);
+      setShowAll(true);
+      loadNotifications();
+      return;
+    }
     setOpen((value) => !value);
     if (!open) loadNotifications();
   }
@@ -82,7 +117,7 @@ export default function NotificationCenter() {
       key={item.id}
       to={notificationLink(item)}
       onClick={() => read(item)}
-      className={`block border border-transparent ${large ? 'rounded-3xl p-5 text-lg' : 'mb-2 rounded-xl p-3 text-sm last:mb-0'} ${item.read ? 'bg-[#eceff1] text-slate-600' : 'border-[#9fc5d4] bg-[#e6f3f8] text-black'}`}
+      className={`block break-words border border-transparent ${large ? 'rounded-3xl p-5 text-lg' : 'mb-2 rounded-xl p-3 text-sm last:mb-0'} ${item.read ? 'bg-[#eceff1] text-slate-600' : 'border-[#9fc5d4] bg-[#e6f3f8] text-black'}`}
     >
       <span>{item.message}</span>
       <span className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
@@ -93,11 +128,25 @@ export default function NotificationCenter() {
   );
 
   return <div ref={rootRef} className="relative">
-    <button type="button" onClick={togglePanel} aria-expanded={open} className="sidebar-action w-full"><Bell /><span>Thông báo</span>{unreadCount > 0 && <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}</button>
+    <button type="button" onClick={togglePanel} aria-expanded={open || showAll} className="sidebar-action w-full"><Bell /><span>Thông báo</span>{unreadCount > 0 && <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}</button>
     {open && <div className="absolute left-full top-0 z-[70] ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-[360px] overflow-auto rounded-2xl border border-[#237596] bg-white p-3 shadow-xl lg:ml-3 lg:w-[360px]">
       {preview.length ? preview.map((item) => renderNotification(item)) : <p className="p-4 text-center text-sm text-slate-500">{loadFailed ? 'Không thể tải thông báo.' : 'Bạn chưa có thông báo nào.'}</p>}
       {notifications.length > 3 && <button type="button" onClick={() => { setOpen(false); setShowAll(true); }} className="mt-2 w-full py-2 text-sm text-[#237596]">Xem thêm...</button>}
     </div>}
-    {showAll && createPortal(<div className="fixed inset-0 z-[120] grid place-items-center bg-black/30 p-4"><section role="dialog" aria-modal="true" aria-labelledby="all-notifications-title" className="relative max-h-[75vh] w-full max-w-xl overflow-auto rounded-[30px] border border-[#237596] bg-white p-6 shadow-2xl sm:p-8"><button type="button" onClick={() => setShowAll(false)} aria-label="Đóng thông báo" className="absolute right-4 top-4 text-red-600"><X className="h-7 w-7" /></button><h2 id="all-notifications-title" className="pr-10 text-2xl font-semibold sm:text-3xl">Thông báo của bạn</h2><div className="mt-6 space-y-3">{notifications.map((item) => renderNotification(item))}</div></section></div>, document.body)}
+    {showAll && createPortal(
+      <div
+        className="fixed inset-0 z-[120] grid place-items-center bg-black/30 p-3 sm:p-4"
+        onClick={(event) => { if (event.target === event.currentTarget) setShowAll(false); }}
+      >
+        <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="all-notifications-title" className="flex max-h-[85dvh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-[#237596] bg-white shadow-2xl sm:max-h-[75dvh]">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6 sm:py-4">
+            <h2 id="all-notifications-title" className="text-xl font-semibold sm:text-2xl">Thông báo của bạn</h2>
+            <button type="button" onClick={() => setShowAll(false)} aria-label="Đóng thông báo" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-red-600 hover:bg-red-50"><X className="h-6 w-6" /></button>
+          </div>
+          <div className="min-h-0 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-6">
+            {notifications.length ? notifications.map((item) => renderNotification(item)) : <p className="py-8 text-center text-sm text-slate-500">{loadFailed ? 'Không thể tải thông báo.' : 'Bạn chưa có thông báo nào.'}</p>}
+          </div>
+        </section>
+      </div>, document.body)}
   </div>;
 }

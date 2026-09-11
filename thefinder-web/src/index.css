@@ -102,7 +102,7 @@ main[aria-label="Danh sách đồ tìm thấy"] > section:first-child {
 @keyframes image-lightbox-zoom-out {
   from {
     opacity: 1;
-    transform: translate(0, 0) scale(1);
+    transform: translate(var(--preview-drag-x, 0px), var(--preview-drag-y, 0px)) scale(var(--preview-drag-scale, 1));
   }
   to {
     opacity: 0.45;
@@ -113,7 +113,7 @@ main[aria-label="Danh sách đồ tìm thấy"] > section:first-child {
 .image-lightbox-backdrop { animation: image-lightbox-backdrop-in 220ms ease-out both; }
 .image-lightbox-panel {
   transform-origin: center;
-  animation: image-lightbox-zoom-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: image-lightbox-zoom-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 .image-lightbox-closing { animation: image-lightbox-backdrop-out 300ms ease-in both; }
 .image-lightbox-closing .image-lightbox-panel {
