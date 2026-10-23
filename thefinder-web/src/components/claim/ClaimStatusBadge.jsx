@@ -15,5 +15,5 @@ const labels = {
 };
 
 export default function ClaimStatusBadge({ status }) {
-  return <span className={`inline-flex min-h-12 items-center rounded-full border border-[#237596] px-6 text-lg font-semibold ${styles[status] || 'bg-slate-200'}`}>{labels[status] || status}</span>;
+  return <span data-status={status} className={`claim-status-badge inline-flex min-h-12 items-center rounded-full border border-[#237596] px-6 text-lg font-semibold ${styles[status] || 'bg-slate-200'}`}>{labels[status] || status}</span>;
 }

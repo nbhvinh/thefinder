@@ -136,18 +136,18 @@ export default function SearchAutocomplete({ id, value, onChange, onSearch, onFo
         aria-controls={`${id}-suggestions`}
         aria-expanded={isOpen}
         aria-activedescendant={activeIndex >= 0 ? `${id}-suggestion-${activeIndex}` : undefined}
-        className={`h-8 w-[180px] rounded-[20px] border border-[#1882ac] bg-[#edecec] px-4 text-black outline-none transition-[width] duration-300 placeholder:text-[#00000066] focus:w-[280px] lg:focus:w-[480px] xl:focus:w-[650px] ${textSize} ${inputClassName}`}
+        className={`h-8 w-[180px] rounded-[18px] border border-[#1882ac] bg-[#edecec] px-4 text-black outline-none transition-[width] duration-300 placeholder:text-[#00000066] focus:w-[280px] lg:focus:w-[480px] xl:focus:w-[650px] ${textSize} ${inputClassName}`}
       />
       {isOpen && !value.trim() && (
-        <div className="absolute left-0 top-full z-[60] mt-2 w-full min-w-80 rounded-xl border border-[#1882ac] bg-white px-4 py-3 text-sm text-black/65 shadow-lg">
+        <div className="absolute left-0 top-full z-[60] mt-2 w-full min-w-80 rounded-[18px] border border-[#1882ac] bg-white px-4 py-3 text-sm text-black/65 shadow-lg">
           tìm kiếm với '#' để tìm theo tag, VD: '#Điện thoại'
         </div>
       )}
       {isOpen && suggestions.length > 0 && (
-        <ul id={`${id}-suggestions`} role="listbox" className="absolute left-0 top-full z-[60] mt-2 w-full min-w-72 overflow-hidden rounded-xl border border-[#1882ac] bg-white p-1.5 shadow-lg">
+        <ul id={`${id}-suggestions`} role="listbox" className="absolute left-0 top-full z-[60] mt-2 w-full min-w-72 overflow-hidden rounded-[18px] border border-[#1882ac] bg-white p-1.5 shadow-lg">
           {suggestions.map((suggestion, index) => (
             <li key={`${suggestion.userId ? `user-${suggestion.userId}` : `${suggestion.value}-${suggestion.categoryId ?? 'text'}`}`} id={`${id}-suggestion-${index}`} role="option" aria-selected={index === activeIndex}>
-              <button type="button" onPointerDown={(event) => { event.preventDefault(); selectSuggestion(suggestion); }} className={`block w-full rounded-lg px-4 py-2.5 text-left text-sm ${index === activeIndex ? 'bg-[#eef8fc] text-[#237596]' : 'text-black hover:bg-[#eef8fc]'}`}>
+              <button type="button" onPointerDown={(event) => { event.preventDefault(); selectSuggestion(suggestion); }} className={`block w-full rounded-[18px] px-4 py-2.5 text-left text-sm ${index === activeIndex ? 'bg-[#eef8fc] text-[#237596]' : 'text-black hover:bg-[#eef8fc]'}`}>
                 <span className="flex items-center justify-between gap-3"><span className="truncate">{suggestion.label}</span>{suggestion.kind && <span className="shrink-0 text-xs text-[#237596]">{suggestion.kind}</span>}</span>
               </button>
             </li>
