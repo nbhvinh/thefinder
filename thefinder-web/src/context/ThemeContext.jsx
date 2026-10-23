@@ -10,7 +10,10 @@ function normalizeColor(value) {
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => localStorage.getItem(`${STORAGE_KEY}-mode`) || 'light');
-  const [darkColor, setDarkColorState] = useState(() => normalizeColor(localStorage.getItem(`${STORAGE_KEY}-color`)));
+  const [darkColor, setDarkColorState] = useState(() => {
+    const saved = normalizeColor(localStorage.getItem(`${STORAGE_KEY}-color`));
+    return saved === '#1c282e' ? DEFAULT_DARK_COLOR : saved;
+  });
 
   const setTheme = useCallback((value) => {
     const safeValue = value === 'dark' ? 'dark' : 'light';

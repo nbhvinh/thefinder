@@ -74,7 +74,7 @@ export default function PublicNavigation() {
         <div className={`mobile-top-search absolute right-3 top-3 z-20 transition-[width] duration-300 ease-out ${isMobileSearchFocused ? 'mobile-top-search-expanded w-[calc(100%-24px)]' : 'w-[min(224px,45vw)]'}`}><SearchAutocomplete id="mobile-public-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={setIsMobileSearchFocused} inputClassName="!h-10 !w-full !px-3 focus:!w-full" /></div>
       </div>
       {createPortal(
-        <nav className={`mobile-bottom-navigation fixed inset-x-[70px] bottom-[max(10px,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[780px] transition-transform duration-300 ease-out lg:static lg:flex lg:h-[70px] lg:w-full lg:translate-y-0 lg:items-end lg:pb-[10px] ${isMobileChromeVisible && !isMobileSearchFocused ? 'translate-y-0' : 'translate-y-[calc(100%+24px)]'}`} aria-label="Điều hướng chính">
+        <nav className={`mobile-bottom-navigation fixed inset-x-[70px] bottom-[max(10px,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[780px] transition-transform duration-300 ease-out lg:hidden ${isMobileChromeVisible && !isMobileSearchFocused ? 'translate-y-0' : 'translate-y-[calc(100%+24px)]'}`} aria-label="Điều hướng chính">
         <ul className="primary-navigation-list grid w-full grid-cols-4 items-stretch gap-0 rounded-full border border-[#1882ac] bg-white p-1.5 shadow-[0_8px_30px_rgba(20,78,101,0.16)] lg:gap-4 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           {navigationItems.map((item) => <li key={item.to} className="text-center">
             {item.disabled
@@ -84,6 +84,15 @@ export default function PublicNavigation() {
         </ul>
       </nav>
       , document.body)}
+      <nav className="desktop-primary-navigation mx-auto hidden w-full max-w-[850px] rounded-[24px] bg-white px-3 py-2 lg:my-3 lg:ml-[280px] lg:mr-[280px] lg:flex xl:ml-[300px] xl:mr-[300px]" aria-label="Điều hướng chính">
+        <ul className="primary-navigation-list grid w-full grid-cols-4 items-center gap-1 xl:gap-4">
+          {navigationItems.map((item) => <li key={item.to} className="text-center">
+            {item.disabled
+              ? <span aria-disabled="true" title="Tính năng đang tạm khóa" className="inline-flex min-h-12 items-center justify-center rounded-full px-8 text-[15px] text-black/35">{item.label}</span>
+              : <NavLink end={item.end} to={item.to} className={({ isActive }) => `relative inline-flex min-h-12 items-center justify-center rounded-full px-8 text-[15px] transition-colors ${isActive ? 'text-black after:absolute after:inset-x-8 after:bottom-0 after:h-[5px] after:rounded-full after:bg-[#237596] after:content-[""]' : 'text-black hover:bg-[#eef8fc] hover:text-[#237596]'}`}>{item.label}</NavLink>}
+          </li>)}
+        </ul>
+      </nav>
     </header>
 
     {createPortal(<>

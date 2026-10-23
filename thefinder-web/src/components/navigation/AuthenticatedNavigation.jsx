@@ -39,6 +39,8 @@ export default function AuthenticatedNavigation() {
   const [contacts, setContacts] = useState([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCreatePostMenuOpen, setIsCreatePostMenuOpen] = useState(false);
+  const createPostMenuRef = useRef(null);
   const [isMobileSearchFocused, setIsMobileSearchFocused] = useState(false);
   const [categories, setCategories] = useState(fallbackCategories);
   const accountRef = useRef(null);
@@ -70,6 +72,14 @@ export default function AuthenticatedNavigation() {
     getCategories().then((data) => {
       if (Array.isArray(data) && data.length) setCategories(data);
     }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const close = (event) => {
+      if (event.key === 'Escape') setIsCreatePostMenuOpen(false);
+    };
+    document.addEventListener('keydown', close);
+    return () => document.removeEventListener('keydown', close);
   }, []);
 
   useEffect(() => {
@@ -132,9 +142,9 @@ export default function AuthenticatedNavigation() {
       </div>
       {drawerMode && <button type="button" onClick={() => setIsMobileMenuOpen(true)} aria-label="Mở menu" aria-expanded={isMobileMenuOpen} className="absolute bottom-[15px] left-3 z-10 hidden h-10 w-10 place-items-center rounded-full text-[#237596] hover:bg-[#eef8fc] lg:grid"><Menu className="h-6 w-6" /></button>}
       {createPortal(
-        <nav className={`mobile-bottom-navigation fixed inset-x-[70px] bottom-[max(10px,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[780px] transition-transform duration-300 ease-out lg:static lg:flex lg:h-[70px] lg:w-full lg:translate-y-0 lg:items-end lg:pb-[10px] ${isMobileChromeVisible && !isMobileSearchFocused ? 'translate-y-0' : 'translate-y-[calc(100%+24px)]'}`} aria-label="Điều hướng chính">
+        <nav className={`mobile-bottom-navigation fixed inset-x-[70px] bottom-[max(10px,env(safe-area-inset-bottom))] z-40 mx-auto w-auto max-w-[780px] transition-transform duration-300 ease-out lg:hidden ${isMobileChromeVisible && !isMobileSearchFocused ? 'translate-y-0' : 'translate-y-[calc(100%+24px)]'}`} aria-label="Điều hướng chính">
         <ul className="primary-navigation-list grid w-full grid-cols-5 items-stretch gap-0 rounded-full border border-[#1882ac] bg-white p-1.5 shadow-[0_8px_30px_rgba(20,78,101,0.16)] lg:grid-cols-4 lg:gap-4 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
-          <li className="order-3 grid place-items-center lg:hidden"><button type="button" aria-label="Bắt đầu bài đăng mới" onClick={() => window.dispatchEvent(new CustomEvent('thefinder:create-post', { detail: { type: pathname.endsWith('/found') ? 'FOUND' : 'LOST' } }))} className="grid h-10 w-10 place-items-center rounded-full bg-[#237596] text-white shadow-md"><Plus className="h-6 w-6" strokeWidth={3} /></button></li>
+          <li ref={createPostMenuRef} className="order-3 grid place-items-center lg:hidden"><button type="button" aria-label="Bắt đầu bài đăng mới" onClick={() => setIsCreatePostMenuOpen((open) => !open)} aria-expanded={isCreatePostMenuOpen} aria-haspopup="menu" className="grid h-10 w-10 place-items-center rounded-full bg-[#237596] text-white shadow-md"><Plus className={`h-6 w-6 transition-transform ${isCreatePostMenuOpen ? 'rotate-45' : ''}`} strokeWidth={3} /></button></li>
           {links.map((link, index) => <li key={link.to} className={`text-center ${index === 0 ? 'order-1' : index === 1 ? 'order-2' : index === 2 ? 'order-4' : 'order-5'}`}>
             {link.disabled
               ? <span aria-disabled="true" title="Tính năng đang tạm khóa" className="inline-flex h-full min-h-11 items-center justify-center rounded-full px-1 text-[10px] leading-tight text-black/35 sm:px-3 sm:text-sm lg:min-h-10 lg:text-[15px]"><span>Báo cáo<br className="lg:hidden" /> trộm cắp</span></span>
@@ -143,10 +153,20 @@ export default function AuthenticatedNavigation() {
         </ul>
       </nav>
       , document.body)}
+      <nav className="desktop-primary-navigation mx-auto hidden w-full max-w-[850px] rounded-[24px] bg-white px-3 py-2 lg:my-3 lg:ml-[280px] lg:mr-[280px] lg:flex xl:ml-[300px] xl:mr-[300px]" aria-label="Điều hướng chính">
+        <ul className="primary-navigation-list grid w-full grid-cols-4 items-center gap-1 xl:gap-4">
+          {links.map((link) => <li key={link.to} className="text-center">
+            {link.disabled
+              ? <span aria-disabled="true" title="Tính năng đang tạm khóa" className="inline-flex min-h-12 items-center justify-center rounded-full px-8 text-[15px] text-black/35">{link.label}</span>
+              : <NavLink end={link.end} to={link.to} className={({ isActive }) => `relative inline-flex min-h-12 items-center justify-center rounded-full px-8 text-[15px] transition-colors ${isActive ? 'text-black after:absolute after:inset-x-8 after:bottom-0 after:h-[5px] after:rounded-full after:bg-[#237596] after:content-[""]' : 'text-black hover:bg-[#eef8fc] hover:text-[#237596]'}`}>{link.label}</NavLink>}
+          </li>)}
+        </ul>
+      </nav>
     </header>
 
     {createPortal(<>
-    {isMobileMenuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setIsMobileMenuOpen(false)} className={`fixed inset-0 z-40 bg-black/25 ${drawerMode ? '' : 'lg:hidden'}`} />}
+    {isCreatePostMenuOpen && <><button type="button" aria-label="Đóng menu đăng bài" onClick={() => setIsCreatePostMenuOpen(false)} className="fixed inset-0 z-[55] bg-black/40" /><div role="menu" className="fixed bottom-[calc(max(10px,env(safe-area-inset-bottom))+64px)] left-1/2 z-[60] w-60 -translate-x-1/2 rounded-[18px] border border-[#1882ac] bg-white p-2 text-left shadow-xl lg:hidden"><Link role="menuitem" to="/posts/create/lost" onClick={() => setIsCreatePostMenuOpen(false)} className="block rounded-[18px] px-4 py-3 text-sm text-black hover:bg-[#eef8fc] hover:text-[#237596]">Đăng bài bị mất đồ</Link><Link role="menuitem" to="/posts/create/found" onClick={() => setIsCreatePostMenuOpen(false)} className="block rounded-[18px] px-4 py-3 text-sm text-black hover:bg-[#eef8fc] hover:text-[#237596]">Đăng bài trả lại đồ</Link><span role="menuitem" aria-disabled="true" className="block cursor-not-allowed rounded-[18px] px-4 py-3 text-sm text-black/40">Báo cáo trộm cắp</span></div></>}
+    {isMobileMenuOpen && <button type="button" aria-label="Đóng menu" onClick={() => setIsMobileMenuOpen(false)} className={`fixed inset-0 z-40 bg-black/40 ${drawerMode ? '' : 'lg:hidden'}`} />}
     <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col bg-white p-5 shadow-xl transition-transform duration-300 ease-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} ${drawerMode ? '' : 'lg:translate-x-0 lg:shadow-none'}`} aria-label="Tiện ích tài khoản">
       <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Đóng menu" className={`absolute right-3 top-3 h-9 w-9 place-items-center rounded-full text-black/65 hover:bg-[#eef8fc] ${drawerMode ? 'grid' : 'grid lg:hidden'}`}><X className="h-5 w-5" /></button>
       <Link to="/home" aria-label="TheFinder - Trang chủ" className="flex items-center gap-3 px-2">
