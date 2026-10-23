@@ -1,5 +1,5 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import PrivatePostList from '../../components/post/PrivatePostList';
 import RecentEventsBar from '../../components/post/RecentEventsBar';
@@ -9,11 +9,21 @@ export default function HomePage() {
   const [searchParams] = useSearchParams();
   const [categoryId, setCategoryId] = useState(null);
   const [creatingPost, setCreatingPost] = useState(false);
+  const [createPostType, setCreatePostType] = useState('LOST');
   const navigate = useNavigate();
   const keyword = searchParams.get('keyword') || '';
   const searchedCategoryId = Number(searchParams.get('categoryId')) || null;
   const activeCategoryId = searchedCategoryId || categoryId;
   const isSearchMode = Boolean(keyword.trim() || searchedCategoryId);
+
+  useEffect(() => {
+    const openCreatePost = (event) => {
+      setCreatePostType(event.detail?.type === 'FOUND' ? 'FOUND' : 'LOST');
+      setCreatingPost(true);
+    };
+    window.addEventListener('thefinder:create-post', openCreatePost);
+    return () => window.removeEventListener('thefinder:create-post', openCreatePost);
+  }, []);
 
   function changeCategory(nextCategoryId) {
     setCategoryId(nextCategoryId);
@@ -21,14 +31,14 @@ export default function HomePage() {
   }
 
   return (
-    <div className="authenticated-page min-h-screen bg-white">
+    <div className="mobile-sidebar-page authenticated-page min-h-screen bg-white">
       <AuthenticatedNavigation />
-      <main>
+      <main className="transition-transform duration-300 ease-out">
         {!isSearchMode && <div className="mx-auto w-[calc(100%-2rem)] max-w-[780px] pt-5 sm:w-[calc(100%-3rem)]">
-          <section className="rounded-[26px] border border-[#237596] px-5 py-4 sm:px-7" aria-label="Tạo bài đăng mới">
+          <section className="rounded-[18px] border border-[#237596] px-5 py-4 sm:px-7" aria-label="Tạo bài đăng mới">
             <button
               type="button"
-              onClick={() => setCreatingPost(true)}
+              onClick={() => { setCreatePostType('LOST'); setCreatingPost(true); }}
               className="flex h-12 w-full items-center rounded-full border border-[#aeb4b7] bg-white px-5 text-sm text-black/65 transition-colors hover:border-[#237596] hover:bg-[#f7fbfd] sm:text-base"
             >
               Bắt đầu bài đăng tìm đồ
@@ -53,7 +63,7 @@ export default function HomePage() {
         </div>}
         <PrivatePostList keyword={keyword} categoryId={activeCategoryId} />
       </main>
-      {creatingPost && <CreatePostModal onClose={() => setCreatingPost(false)} />}
+      {creatingPost && <CreatePostModal initialType={createPostType} onClose={() => setCreatingPost(false)} />}
     </div>
   );
 }

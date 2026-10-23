@@ -43,9 +43,9 @@ export default function CreatePostMenu({ isAuthenticated = false, compact = fals
       </button>
 
       {isOpen && (
-        <div role="menu" className={`absolute z-50 rounded-xl border border-[#1882ac] bg-white p-2 shadow-lg ${compact ? 'left-full top-0 ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-60 overflow-auto lg:ml-3 lg:w-60' : 'right-0 top-full mt-2 w-60'}`}>
+        <div role="menu" className={`absolute z-50 rounded-[18px] border border-[#1882ac] bg-white p-2 shadow-lg ${compact ? 'left-full top-0 ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-60 overflow-auto lg:ml-3 lg:w-60' : 'right-0 top-full mt-2 w-60'}`}>
           {actions.map((action) => action.disabled ? (
-            <button key={action.label} type="button" role="menuitem" disabled className="block w-full cursor-not-allowed rounded-lg px-4 py-2.5 text-left text-sm text-black/40">
+            <button key={action.label} type="button" role="menuitem" disabled className="block w-full cursor-not-allowed rounded-[18px] px-4 py-2.5 text-left text-sm text-black/40">
               {action.label}
             </button>
           ) : (
@@ -55,7 +55,7 @@ export default function CreatePostMenu({ isAuthenticated = false, compact = fals
               to={isAuthenticated ? action.to : '/sign-in'}
               state={isAuthenticated ? undefined : { from: action.to }}
               onClick={() => setIsOpen(false)}
-              className="block rounded-lg px-4 py-2.5 text-sm text-black hover:bg-[#eef8fc] hover:text-[#237596]"
+              className="block rounded-[18px] px-4 py-2.5 text-sm text-black hover:bg-[#eef8fc] hover:text-[#237596]"
             >
               {action.label}
             </Link>

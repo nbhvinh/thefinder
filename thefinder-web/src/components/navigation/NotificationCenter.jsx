@@ -117,7 +117,7 @@ export default function NotificationCenter() {
       key={item.id}
       to={notificationLink(item)}
       onClick={() => read(item)}
-      className={`block break-words border border-transparent ${large ? 'rounded-3xl p-5 text-lg' : 'mb-2 rounded-xl p-3 text-sm last:mb-0'} ${item.read ? 'bg-[#eceff1] text-slate-600' : 'border-[#9fc5d4] bg-[#e6f3f8] text-black'}`}
+      className={`block break-words border border-transparent ${large ? 'rounded-[18px] p-5 text-lg' : 'mb-2 rounded-[18px] p-3 text-sm last:mb-0'} ${item.read ? 'bg-[#eceff1] text-slate-600' : 'border-[#9fc5d4] bg-[#e6f3f8] text-black'}`}
     >
       <span>{item.message}</span>
       <span className="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
@@ -129,7 +129,7 @@ export default function NotificationCenter() {
 
   return <div ref={rootRef} className="relative">
     <button type="button" onClick={togglePanel} aria-expanded={open || showAll} className="sidebar-action w-full"><Bell /><span>Thông báo</span>{unreadCount > 0 && <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-xs text-white">{unreadCount > 99 ? '99+' : unreadCount}</span>}</button>
-    {open && <div className="absolute left-full top-0 z-[70] ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-[360px] overflow-auto rounded-2xl border border-[#237596] bg-white p-3 shadow-xl lg:ml-3 lg:w-[360px]">
+    {open && <div className="absolute left-full top-0 z-[70] ml-2 max-h-[calc(100vh-2rem)] w-[calc(100vw-292px)] max-w-[360px] overflow-auto rounded-[18px] border border-[#237596] bg-white p-3 shadow-xl lg:ml-3 lg:w-[360px]">
       {preview.length ? preview.map((item) => renderNotification(item)) : <p className="p-4 text-center text-sm text-slate-500">{loadFailed ? 'Không thể tải thông báo.' : 'Bạn chưa có thông báo nào.'}</p>}
       {notifications.length > 3 && <button type="button" onClick={() => { setOpen(false); setShowAll(true); }} className="mt-2 w-full py-2 text-sm text-[#237596]">Xem thêm...</button>}
     </div>}
@@ -138,7 +138,7 @@ export default function NotificationCenter() {
         className="fixed inset-0 z-[120] grid place-items-center bg-black/30 p-3 sm:p-4"
         onClick={(event) => { if (event.target === event.currentTarget) setShowAll(false); }}
       >
-        <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="all-notifications-title" className="flex max-h-[85dvh] w-full max-w-xl flex-col overflow-hidden rounded-3xl border border-[#237596] bg-white shadow-2xl sm:max-h-[75dvh]">
+        <section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="all-notifications-title" className="flex max-h-[85dvh] w-full max-w-xl flex-col overflow-hidden rounded-[18px] border border-[#237596] bg-white shadow-2xl sm:max-h-[75dvh]">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6 sm:py-4">
             <h2 id="all-notifications-title" className="text-xl font-semibold sm:text-2xl">Thông báo của bạn</h2>
             <button type="button" onClick={() => setShowAll(false)} aria-label="Đóng thông báo" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-red-600 hover:bg-red-50"><X className="h-6 w-6" /></button>

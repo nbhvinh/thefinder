@@ -1,6 +1,13 @@
 @import "./styles/fonts.css";
 @import "tailwindcss";
 
+@media (max-width: 1023px) {
+  [data-theme="dark"] header.sticky {
+    background-color: transparent !important;
+  }
+
+}
+
 :root {
   --dark-background: #000000;
   --dark-surface: color-mix(in srgb, var(--dark-background) 88%, white);
@@ -93,6 +100,18 @@
 }
 
 @media (min-width: 1024px) {
+  [data-theme="dark"] nav[aria-label="Điều hướng chính"] .primary-navigation-list {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  [data-theme="dark"] nav[aria-label="Điều hướng chính"] .primary-navigation-list a {
+    background-color: transparent !important;
+    border-radius: 0 !important;
+  }
+
   [data-theme="dark"] nav[aria-label="Điều hướng chính"] a[aria-current="page"] {
     background-color: transparent !important;
     color: var(--dark-foreground) !important;
@@ -104,6 +123,10 @@
 [data-theme="dark"] select {
   background-color: var(--dark-surface-raised);
   color: var(--dark-foreground);
+}
+
+select {
+  border-radius: 18px;
 }
 
 [data-theme="dark"] .authenticated-sidebar input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
@@ -120,6 +143,15 @@
 [data-theme="dark"] .authenticated-page {
   background-color: var(--dark-background) !important;
   color: var(--dark-foreground);
+}
+
+[data-theme="dark"] .post-details-panel {
+  background-color: var(--dark-surface-raised) !important;
+  border-color: #4b6874 !important;
+}
+
+[data-theme="dark"] .post-details-panel [class~="text-black"] {
+  color: var(--dark-foreground) !important;
 }
 
 [data-theme="dark"] .sidebar-action,
@@ -189,7 +221,7 @@ button:disabled,
   min-height: 48px;
   align-items: center;
   gap: 12px;
-  border-radius: 20px;
+  border-radius: 18px;
   padding: 0 14px;
   color: #111;
   font-size: 15px;
@@ -210,6 +242,19 @@ button:disabled,
 .mobile-top-search form[role="search"] { display: block; width: 100%; }
 
 @media (max-width: 1023px) {
+.mobile-sidebar-page {
+  transform: translateX(0);
+  transition: transform 300ms ease-out;
+}
+
+body.mobile-sidebar-open .mobile-sidebar-page {
+  transform: translateX(276px);
+}
+
+body.mobile-sidebar-open .mobile-bottom-navigation {
+  transform: translateX(276px);
+}
+
   .mobile-top-search form[role="search"] > div,
   .mobile-top-search form[role="search"] > ul {
     right: 0;
@@ -236,7 +281,7 @@ main[aria-label="Danh sách đồ tìm thấy"] > section:first-child {
   width: calc(100% - 2rem);
   max-width: 780px;
   margin: 20px auto 0;
-  border-radius: 26px;
+  border-radius: 18px;
 }
 
 /* Compact confirmation dialog on the create-claim page. */

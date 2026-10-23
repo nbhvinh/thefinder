@@ -42,7 +42,7 @@ function StatisticsSection({ title, description, statistics, isLoading, variant 
         style={{ height: '252px', maxHeight: '252px', marginTop: '12px', paddingTop: '2px' }}
       >
         {statistics.map((category) => (
-          <div key={category.id} className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 hover:bg-[#f5f8fa]">
+          <div key={category.id} className="flex items-center justify-between gap-3 rounded-[18px] px-3 py-2.5 hover:bg-[#f5f8fa]">
             <span className="min-w-0 truncate text-sm text-black/75">{category.name}</span>
             <span className="shrink-0 rounded-full bg-[#eef8fc] px-2.5 py-1 text-xs font-semibold text-[#237596]">{isLoading ? '—' : category.count} bài đăng</span>
           </div>
