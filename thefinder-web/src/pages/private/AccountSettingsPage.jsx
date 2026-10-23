@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useBlocker, useNavigate } from 'react-router-dom';
 import { KeyRound, Save, UserRound } from 'lucide-react';
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import { getCurrentUser, updateAccount } from '../../api/authApi';
@@ -22,6 +24,12 @@ export default function AccountSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [savedSnapshot, setSavedSnapshot] = useState(null);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  const navigate = useNavigate();
+  const snapshot = JSON.stringify({ form, theme, darkColor });
+  const dirty = savedSnapshot !== null && snapshot !== savedSnapshot;
+  const blocker = useBlocker(dirty && !saving);
 
   useEffect(() => {
     let active = true;
@@ -30,7 +38,9 @@ export default function AccountSettingsPage() {
       setEmail(data.email);
       if (data.themePreference) setTheme(data.themePreference);
       if (data.darkColor) setDarkColor(data.darkColor);
-      setForm((current) => ({ ...current, fullName: data.fullName || '', phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo) }));
+      const loadedForm = { fullName: data.fullName || '', phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo), currentPassword: '', newPassword: '', confirmPassword: '' };
+      setForm((current) => ({ ...current, ...loadedForm }));
+      setSavedSnapshot(JSON.stringify({ form: loadedForm, theme: data.themePreference || theme, darkColor: data.darkColor || DEFAULT_DARK_COLOR }));
     }).catch(() => {
       if (active) setMessage('Không thể tải thông tin tài khoản.');
     }).finally(() => {
@@ -66,6 +76,8 @@ export default function AccountSettingsPage() {
         newPassword: form.newPassword || null,
       });
       setForm((current) => ({ ...current, fullName: data.fullName, phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo), currentPassword: '', newPassword: '', confirmPassword: '' }));
+      const savedForm = { fullName: data.fullName, phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo), currentPassword: '', newPassword: '', confirmPassword: '' };
+      setSavedSnapshot(JSON.stringify({ form: savedForm, theme: data.themePreference || theme, darkColor: data.darkColor || darkColor }));
       sessionStorage.setItem('thefinder-user-name', data.fullName);
       window.dispatchEvent(new CustomEvent('thefinder:account-updated', { detail: data }));
       setSuccess(true);
@@ -75,6 +87,16 @@ export default function AccountSettingsPage() {
     } finally {
       setSaving(false);
     }
+  }
+
+  useEffect(() => {
+    if (blocker.state === 'blocked') setConfirmLeave(true);
+  }, [blocker.state]);
+
+  function leaveSettings() {
+    setConfirmLeave(false);
+    if (blocker.state === 'blocked') blocker.proceed();
+    else navigate(-1);
   }
 
   return <div className="mobile-sidebar-page authenticated-page min-h-screen bg-white">
@@ -130,5 +152,6 @@ export default function AccountSettingsPage() {
         <button type="submit" disabled={loading || saving} className="ml-auto flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#237596] px-7 font-semibold text-white disabled:opacity-50 sm:w-auto"><Save className="h-5 w-5" />{saving ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
       </form>
     </main>
+    {confirmLeave && createPortal(<div className="fixed inset-0 z-[110] grid place-items-center bg-black/35 p-4"><section role="dialog" aria-modal="true" className="w-full max-w-md rounded-[18px] border border-[#237596] bg-white p-6 text-center shadow-2xl"><h2 className="text-2xl font-semibold">Lưu cài đặt?</h2><p className="mt-3 text-slate-600">Bạn có thay đổi chưa lưu. Bạn muốn lưu trước khi thoát không?</p><div className="mt-7 grid gap-3 sm:grid-cols-3"><button type="button" onClick={() => { setConfirmLeave(false); blocker.reset(); }} className="h-11 rounded-full border border-[#237596]">Ở lại</button><button type="button" onClick={leaveSettings} className="h-11 rounded-full bg-[#fb5353] text-white">Thoát</button><button type="button" onClick={async () => { await document.querySelector('form')?.requestSubmit(); }} className="h-11 rounded-full bg-[#237596] text-white">Lưu</button></div></section></div>, document.body)}
   </div>;
 }

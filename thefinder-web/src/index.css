@@ -51,6 +51,7 @@
 }
 
 [data-theme="dark"] header.sticky,
+[data-theme="dark"] nav.desktop-primary-navigation,
 [data-theme="dark"] aside.authenticated-sidebar,
 [data-theme="dark"] aside[aria-label="Thống kê tình trạng đồ vật"] {
   background-color: var(--dark-background) !important;

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider, useLocation } from 'react-router-dom';
 import PublicHomePage from '../pages/public/PublicHomePage';
 import FoundPostsPage from '../pages/public/FoundPostsPage';
 import LostPostsPage from '../pages/public/LostPostsPage';
@@ -30,6 +30,38 @@ function ScrollToTop() {
   return null;
 }
 
+function AppLayout() {
+  return <><ScrollToTop /><Outlet /></>;
+}
+
+const router = createBrowserRouter([
+  { element: <AppLayout />, children: [
+  { path: '/', element: <PublicHomePage /> },
+  { path: '/lost', element: <LostPostsPage /> },
+  { path: '/found', element: <FoundPostsPage /> },
+  { path: '/sign-in', element: <SignInPage /> },
+  { path: '/sign-up', element: <SignUpPage /> },
+  { element: <ProtectedRoute />, children: [
+    { path: '/home', element: <HomePage /> },
+    { path: '/home/lost', element: <PrivateLostPage /> },
+    { path: '/home/found', element: <PrivateFoundPage /> },
+    { path: '/profile', element: <ProfilePage /> },
+    { path: '/users/:userId', element: <ProfilePage /> },
+    { path: '/settings', element: <AccountSettingsPage /> },
+    { path: '/posts/create/lost', element: <CreateLostPostPage /> },
+    { path: '/posts/create/found', element: <CreateFoundPostPage /> },
+    { path: '/posts/:postId/claim', element: <CreateClaimPage /> },
+    { path: '/claims/received', element: <ClaimsListPage mode="received" /> },
+    { path: '/claims/sent', element: <ClaimsListPage mode="sent" /> },
+    { element: <AdminRoute />, children: [
+      { path: '/admin/reports', element: <AdminReportsPage /> },
+      { path: '/admin/blacklist', element: <AdminBlacklistPage /> },
+    ] },
+  ] },
+  { path: '*', element: <Navigate to="/" replace /> },
+  ] },
+]);
+
 export default function AppRoutes() {
-  return <BrowserRouter><ScrollToTop /><Routes><Route path="/" element={<PublicHomePage />} /><Route path="/lost" element={<LostPostsPage />} /><Route path="/found" element={<FoundPostsPage />} /><Route path="/sign-in" element={<SignInPage />} /><Route path="/sign-up" element={<SignUpPage />} /><Route element={<ProtectedRoute />}><Route path="/home" element={<HomePage />} /><Route path="/home/lost" element={<PrivateLostPage />} /><Route path="/home/found" element={<PrivateFoundPage />} /><Route path="/profile" element={<ProfilePage />} /><Route path="/users/:userId" element={<ProfilePage />} /><Route path="/settings" element={<AccountSettingsPage />} /><Route path="/posts/create/lost" element={<CreateLostPostPage />} /><Route path="/posts/create/found" element={<CreateFoundPostPage />} /><Route path="/posts/:postId/claim" element={<CreateClaimPage />} /><Route path="/claims/received" element={<ClaimsListPage mode="received" />} /><Route path="/claims/sent" element={<ClaimsListPage mode="sent" />} /><Route element={<AdminRoute />}><Route path="/admin/reports" element={<AdminReportsPage />} /><Route path="/admin/blacklist" element={<AdminBlacklistPage />} /></Route></Route><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter>;
+  return <RouterProvider router={router} fallbackElement={<div className="min-h-screen bg-white" />} />;
 }
