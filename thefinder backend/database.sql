@@ -17,6 +17,8 @@ CREATE TABLE users (
     show_phone    BOOLEAN NOT NULL DEFAULT TRUE,
     show_messenger BOOLEAN NOT NULL DEFAULT TRUE,
     show_zalo     BOOLEAN NOT NULL DEFAULT TRUE,
+    theme_preference VARCHAR(10) NOT NULL DEFAULT 'light',
+    dark_color    VARCHAR(7) NOT NULL DEFAULT '#000000',
     avatar_url    VARCHAR(500),
     role          VARCHAR(20) NOT NULL DEFAULT 'USER',
     blacklisted   BOOLEAN NOT NULL DEFAULT FALSE,
@@ -24,6 +26,11 @@ CREATE TABLE users (
     updated_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT chk_users_role CHECK (role IN ('USER', 'ADMIN'))
 );
+
+-- For databases created before theme preferences were added:
+ALTER TABLE users ADD COLUMN IF NOT EXISTS theme_preference VARCHAR(10) NOT NULL DEFAULT 'light';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS dark_color VARCHAR(7) NOT NULL DEFAULT '#000000';
+UPDATE users SET dark_color = '#000000' WHERE dark_color = '#1c282e';
 
 CREATE TABLE categories (
     id   BIGSERIAL PRIMARY KEY,

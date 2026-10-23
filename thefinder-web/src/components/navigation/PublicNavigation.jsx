@@ -82,7 +82,7 @@ export default function PublicNavigation() {
     <aside className={`authenticated-sidebar fixed inset-y-0 left-0 z-50 flex w-[276px] flex-col bg-white p-5 shadow-xl transition-transform duration-300 ease-out lg:translate-x-0 lg:shadow-none ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`} aria-label="Tiện ích khách">
       <button type="button" onClick={() => setIsMobileMenuOpen(false)} aria-label="Đóng menu" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full text-black/65 hover:bg-[#eef8fc] lg:hidden"><X className="h-5 w-5" /></button>
       <Link to="/" aria-label="TheFinder - Trang chủ" className="flex items-center gap-3 px-2"><BrandLogo className="h-12 w-12" /><span className="font-brand text-xl text-black">TheFinder</span></Link>
-      <div className="mt-5"><SearchAutocomplete id="site-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full !bg-white focus:!w-full" /></div>
+      <div className="mt-5"><SearchAutocomplete id="site-search" value={searchQuery} onChange={setSearchQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full focus:!w-full" /></div>
 
       <div className="mt-5 flex flex-col gap-1.5">
         <NavLink end to="/" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><House /><span>Trang chính</span></NavLink>

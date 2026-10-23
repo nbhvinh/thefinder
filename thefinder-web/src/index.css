@@ -1,6 +1,172 @@
 @import "./styles/fonts.css";
 @import "tailwindcss";
 
+:root {
+  --dark-background: #000000;
+  --dark-surface: color-mix(in srgb, var(--dark-background) 88%, white);
+  --dark-surface-raised: color-mix(in srgb, var(--dark-background) 78%, white);
+  --dark-border: color-mix(in srgb, var(--dark-background) 65%, white);
+  --dark-foreground: #edf3f5;
+  --dark-muted: #b5c2c8;
+}
+
+[data-theme="dark"] body {
+  background-color: var(--dark-background);
+  color: var(--dark-foreground);
+}
+
+[data-theme="dark"] [class~="bg-white"],
+[data-theme="dark"] [class~="bg-slate-50"],
+[data-theme="dark"] [class~="bg-slate-50/70"],
+[data-theme="dark"] [class~="bg-slate-100"],
+[data-theme="dark"] [class*="bg-[#"] {
+  background-color: var(--dark-surface) !important;
+}
+
+[data-theme="dark"] [class*="bg-[#237596"] {
+  background-color: #237596 !important;
+}
+
+[data-theme="dark"] [class*="bg-[#287f9f"] {
+  background-color: #287f9f !important;
+}
+
+[data-theme="dark"] [class*="bg-[#62a56d"] {
+  background-color: #62a56d !important;
+}
+
+[data-theme="dark"] [class*="bg-[#fb5353"] {
+  background-color: #fb5353 !important;
+}
+
+[data-theme="dark"] [class*="bg-[#185d79"] {
+  background-color: #185d79 !important;
+}
+
+[data-theme="dark"] header.sticky,
+[data-theme="dark"] aside.authenticated-sidebar,
+[data-theme="dark"] aside[aria-label="Thống kê tình trạng đồ vật"] {
+  background-color: var(--dark-background) !important;
+}
+
+[data-theme="dark"] aside[aria-label="Thống kê tình trạng đồ vật"] section > div:first-child,
+[data-theme="dark"] aside[aria-label="Thống kê tình trạng đồ vật"] section > div:nth-child(2) > div {
+  background-color: var(--dark-background) !important;
+}
+
+[data-theme="dark"] [class~="text-black"],
+[data-theme="dark"] [class~="text-slate-900"],
+[data-theme="dark"] [class~="text-slate-800"],
+[data-theme="dark"] [class~="text-slate-700"],
+[data-theme="dark"] [class~="text-slate-600"],
+[data-theme="dark"] [class*="text-[#"] {
+  color: var(--dark-foreground) !important;
+}
+
+[data-theme="dark"] [class~="text-slate-500"],
+[data-theme="dark"] [class~="text-slate-400"] {
+  color: var(--dark-muted) !important;
+}
+
+[data-theme="dark"] [class*="text-black/"] {
+  color: var(--dark-foreground) !important;
+}
+
+[data-theme="dark"] [class*="border-"] {
+  border-color: var(--dark-border) !important;
+}
+
+[data-theme="dark"] [class*="border-[#1882ac"],
+[data-theme="dark"] [class*="border-[#237596"] {
+  border-color: #1882ac !important;
+}
+
+[data-theme="dark"] [class*="border-black"],
+[data-theme="dark"] [class*="border-[#000"] {
+  border-color: #fff !important;
+}
+
+@media (max-width: 1023px) {
+  [data-theme="dark"] nav[aria-label="Điều hướng chính"] a[aria-current="page"] {
+    background-color: #329fc2 !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-theme="dark"] nav[aria-label="Điều hướng chính"] a[aria-current="page"] {
+    background-color: transparent !important;
+    color: var(--dark-foreground) !important;
+  }
+}
+
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--dark-surface-raised);
+  color: var(--dark-foreground);
+}
+
+[data-theme="dark"] .authenticated-sidebar input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+[data-theme="dark"] .authenticated-sidebar input[class*="bg-white"] {
+  background-color: var(--dark-surface-raised) !important;
+  color: var(--dark-foreground) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--dark-muted);
+}
+
+[data-theme="dark"] .authenticated-page {
+  background-color: var(--dark-background) !important;
+  color: var(--dark-foreground);
+}
+
+[data-theme="dark"] .sidebar-action,
+[data-theme="dark"] .sidebar-action:hover:not(:disabled) {
+  color: var(--dark-foreground);
+}
+
+[data-theme="dark"] .sidebar-action:disabled {
+  color: rgb(237 243 245 / 45%);
+}
+
+[data-theme="dark"] .claim-status-badge[data-status="SUBMITTED"] {
+  background-color: #ff8a47 !important;
+  color: #111 !important;
+}
+
+[data-theme="dark"] .claim-status-badge[data-status="PENDING"],
+[data-theme="dark"] .claim-status-badge[data-status="REVIEWING"] {
+  background-color: #d9d9d9 !important;
+  color: #555 !important;
+}
+
+[data-theme="dark"] .claim-status-badge[data-status="REJECTED"] {
+  background-color: #c81717 !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .claim-status-badge[data-status="CONFIRMED"] {
+  background-color: #62a56d !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .post-status-badge[data-status="OPEN"] {
+  background-color: #e5f5ed !important;
+  color: #287553 !important;
+}
+
+[data-theme="dark"] .post-status-badge[data-status="RESOLVED"] {
+  background-color: #e6f2f7 !important;
+  color: #176c8d !important;
+}
+
+[data-theme="dark"] .post-status-badge[data-status="CLOSED"] {
+  background-color: #e2e8f0 !important;
+  color: #475569 !important;
+}
+
 @media (max-width: 1023px) {
   body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 }

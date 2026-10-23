@@ -25,6 +25,10 @@ public class AccountUpdateRequest {
     private boolean showMessenger;
     private boolean showZalo;
 
+    private String themePreference;
+
+    private String darkColor;
+
     private String currentPassword;
 
     @Size(min = 4, max = 72, message = "Mật khẩu mới phải từ 4 đến 72 ký tự")

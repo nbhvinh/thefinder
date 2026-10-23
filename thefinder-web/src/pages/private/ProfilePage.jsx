@@ -63,7 +63,7 @@ function ProfilePostCard({ post, manageable = true, onEdit, onDelete }) {
     <div className="p-4">
       <div className="flex items-start justify-between gap-3">
         <h2 className="line-clamp-2 text-lg font-semibold leading-snug text-[#15252c]">{post.title}</h2>
-        <span className={`mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${post.status === 'OPEN' ? 'bg-[#e5f5ed] text-[#287553]' : post.status === 'RESOLVED' ? 'bg-[#e6f2f7] text-[#176c8d]' : 'bg-slate-100 text-slate-500'}`}>{statusLabels[post.status] ?? post.status}</span>
+        <span data-status={post.status} className={`post-status-badge mt-0.5 shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${post.status === 'OPEN' ? 'bg-[#e5f5ed] text-[#287553]' : post.status === 'RESOLVED' ? 'bg-[#e6f2f7] text-[#176c8d]' : 'bg-slate-100 text-slate-500'}`}>{statusLabels[post.status] ?? post.status}</span>
       </div>
       <p className="mt-2 line-clamp-2 min-h-10 text-sm leading-5 text-slate-600">{post.description || 'Không có mô tả.'}</p>
       <div className="mt-4 flex flex-col gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">

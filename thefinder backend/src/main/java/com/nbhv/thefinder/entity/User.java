@@ -44,6 +44,12 @@ public class User {
     @Column(name = "show_zalo", nullable = false)
     private boolean showZalo = true;
 
+    @Column(name = "theme_preference", nullable = false)
+    private String themePreference = "light";
+
+    @Column(name = "dark_color", nullable = false, length = 7)
+    private String darkColor = "#000000";
+
     @Column(name = "avatar_url")
     private String avatarUrl;
 

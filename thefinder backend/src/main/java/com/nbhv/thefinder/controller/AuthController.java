@@ -109,6 +109,12 @@ public class AuthController {
         user.setShowPhone(req.isShowPhone());
         user.setShowMessenger(req.isShowMessenger());
         user.setShowZalo(req.isShowZalo());
+        if (req.getThemePreference() != null) {
+            user.setThemePreference("dark".equalsIgnoreCase(req.getThemePreference()) ? "dark" : "light");
+        }
+        if (req.getDarkColor() != null && req.getDarkColor().matches("#[0-9a-fA-F]{6}")) {
+            user.setDarkColor(req.getDarkColor().toLowerCase());
+        }
         return ResponseEntity.ok(userResponse(userRepo.save(user)));
     }
 
@@ -129,6 +135,8 @@ public class AuthController {
         response.put("showPhone", user.isShowPhone());
         response.put("showMessenger", user.isShowMessenger());
         response.put("showZalo", user.isShowZalo());
+        response.put("themePreference", user.getThemePreference());
+        response.put("darkColor", user.getDarkColor());
         response.put("role", user.getRole());
         response.put("createdAt", user.getCreatedAt());
         return response;

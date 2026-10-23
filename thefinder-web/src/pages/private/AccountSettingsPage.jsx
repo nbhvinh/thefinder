@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { KeyRound, Save, UserRound } from 'lucide-react';
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import { getCurrentUser, updateAccount } from '../../api/authApi';
+import { useTheme, DEFAULT_DARK_COLOR } from '../../context/ThemeContext';
 
 function PrivacySwitch({ checked, onChange, label, disabled }) {
   return <label className="flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3"><span className="text-sm font-medium">{label}</span><input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="peer sr-only" /><span aria-hidden="true" className="relative h-7 w-12 shrink-0 rounded-full border border-white/80 bg-slate-300/80 shadow-inner transition duration-300 after:absolute after:left-1 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-300 peer-checked:bg-[#237596] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#237596] peer-focus-visible:ring-offset-2 peer-disabled:opacity-50" /></label>;
@@ -14,6 +15,7 @@ function errorMessage(error) {
 }
 
 export default function AccountSettingsPage() {
+  const { theme, setTheme, darkColor, setDarkColor } = useTheme();
   const [form, setForm] = useState({ fullName: '', phone: '', messengerUrl: '', zaloUrl: '', showPhone: false, showMessenger: false, showZalo: false, currentPassword: '', newPassword: '', confirmPassword: '' });
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,8 @@ export default function AccountSettingsPage() {
     getCurrentUser().then(({ data }) => {
       if (!active) return;
       setEmail(data.email);
+      if (data.themePreference) setTheme(data.themePreference);
+      if (data.darkColor) setDarkColor(data.darkColor);
       setForm((current) => ({ ...current, fullName: data.fullName || '', phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo) }));
     }).catch(() => {
       if (active) setMessage('Không thể tải thông tin tài khoản.');
@@ -56,6 +60,8 @@ export default function AccountSettingsPage() {
         showPhone: form.showPhone,
         showMessenger: form.showMessenger,
         showZalo: form.showZalo,
+        themePreference: theme,
+        darkColor,
         currentPassword: form.newPassword ? form.currentPassword : null,
         newPassword: form.newPassword || null,
       });
@@ -81,6 +87,21 @@ export default function AccountSettingsPage() {
       </header>
 
       <form onSubmit={submit} className="mt-7 space-y-6">
+        <section className="rounded-[28px] border border-[#9fc5d4] bg-white p-5 sm:p-7" aria-labelledby="appearance-title">
+          <h2 id="appearance-title" className="text-xl font-semibold">Giao diện</h2>
+          <p className="mt-2 text-sm text-slate-500">Chọn giao diện cho toàn bộ trang web.</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <button type="button" onClick={() => setTheme('light')} aria-pressed={theme === 'light'} className={`rounded-2xl border p-4 text-left transition ${theme === 'light' ? 'border-[#237596] ring-2 ring-[#237596]/20' : 'border-slate-200'}`}><span className="block font-semibold">Sáng</span><span className="mt-1 block text-sm text-slate-500">Giao diện sáng mặc định</span></button>
+            <button type="button" onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'} className={`rounded-2xl border p-4 text-left transition ${theme === 'dark' ? 'border-[#237596] ring-2 ring-[#237596]/20' : 'border-slate-200'}`}><span className="block font-semibold">Tối</span><span className="mt-1 block text-sm text-slate-500">Tùy chỉnh màu nền tối</span></button>
+          </div>
+          <label className="mt-4 flex flex-wrap items-center gap-3 text-sm font-medium">Màu nền dark mode
+            <input type="color" value={darkColor} onChange={(event) => setDarkColor(event.target.value)} aria-label="Chọn màu nền dark mode" className="h-10 w-14 cursor-pointer rounded-lg border border-slate-300 bg-transparent p-1" />
+            <input type="text" value={darkColor} onChange={(event) => /^#[0-9a-fA-F]{6}$/.test(event.target.value) && setDarkColor(event.target.value)} aria-label="Mã màu nền dark mode" pattern="#[0-9a-fA-F]{6}" maxLength={7} className="h-10 w-28 rounded-xl border border-slate-300 px-3 font-mono uppercase outline-none focus:border-[#237596]" />
+            <button type="button" onClick={() => setDarkColor(DEFAULT_DARK_COLOR)} className="text-[#237596] underline underline-offset-2">Đặt lại</button>
+          </label>
+          <p className="mt-2 text-xs text-slate-500">Mã màu hex 6 ký tự, ví dụ #000000. Lựa chọn được lưu cùng tài khoản.</p>
+        </section>
+
         <section className="rounded-[28px] border border-[#9fc5d4] bg-white p-5 sm:p-7" aria-labelledby="personal-info-title">
           <h2 id="personal-info-title" className="flex items-center gap-2 text-xl font-semibold"><UserRound className="text-[#237596]" />Thông tin cá nhân</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">

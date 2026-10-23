@@ -11,6 +11,7 @@ import NotificationCenter from './NotificationCenter';
 import useScrollChromeVisibility from '../../hooks/useScrollChromeVisibility';
 import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 import { getContactSuggestions } from '../../api/userApi';
+import { useTheme } from '../../context/ThemeContext';
 
 const links = [
   { label: 'Trang chủ', to: '/home', end: true },
@@ -45,6 +46,7 @@ export default function AuthenticatedNavigation() {
   const contactRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const { setTheme, setDarkColor } = useTheme();
   const isMobileChromeVisible = useScrollChromeVisibility();
   useBodyScrollLock(isMobileSearchFocused);
   const drawerMode = pathname.startsWith('/posts/create/')
@@ -54,6 +56,8 @@ export default function AuthenticatedNavigation() {
     getCurrentUser().then((response) => {
       setUserName(response.data.fullName);
       setUserRole(response.data.role || 'USER');
+      if (response.data.themePreference) setTheme(response.data.themePreference);
+      if (response.data.darkColor) setDarkColor(response.data.darkColor);
       sessionStorage.setItem('thefinder-user-name', response.data.fullName);
       sessionStorage.setItem('thefinder-user-role', response.data.role || 'USER');
     }).catch(() => {});
@@ -141,7 +145,7 @@ export default function AuthenticatedNavigation() {
       </Link>
 
       <div className="mt-5">
-        <SearchAutocomplete id="authenticated-search" value={query} onChange={setQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full !bg-white focus:!w-full" />
+        <SearchAutocomplete id="authenticated-search" value={query} onChange={setQuery} onSearch={search} onFocusChange={() => {}} textSize="text-sm" inputClassName="!h-11 !w-full focus:!w-full" />
       </div>
 
       <div className="mt-5 flex flex-col gap-1.5">
