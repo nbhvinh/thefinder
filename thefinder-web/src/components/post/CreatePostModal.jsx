@@ -35,7 +35,7 @@ export default function CreatePostModal({ onClose, initialType = 'LOST' }) {
   useEffect(() => { getCategories().then((data) => setCategories(Array.isArray(data) ? data : [])).catch(() => {}); }, []);
 
   const categoryName = categories.find((category) => Number(category.id) === Number(categoryId))?.name || 'Khác';
-  const change = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  const change = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value.slice(0, 900) }));
 
   function openPreview(event) {
     event.preventDefault();
@@ -70,12 +70,12 @@ export default function CreatePostModal({ onClose, initialType = 'LOST' }) {
         <h2 id="create-post-modal-title" className="pr-10 text-2xl font-bold text-black">Tạo bài viết mới</h2>
         <p className="mt-1 text-sm text-slate-500">Chia sẻ thông tin để cộng đồng có thể giúp bạn.</p>
         <div className="mt-6 space-y-4">
-          <label className="block text-sm font-medium">Tiêu đề<input name="title" value={form.title} onChange={change} maxLength={255} placeholder={isLost ? 'Ví dụ: Ví da màu nâu' : 'Ví dụ: Chùm chìa khóa Honda'} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label>
+          <label className="block text-sm font-medium">Tiêu đề<input name="title" value={form.title} onChange={change} maxLength={900} placeholder={isLost ? 'Ví dụ: Ví da màu nâu' : 'Ví dụ: Chùm chìa khóa Honda'} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label>
           <label className="block text-sm font-medium">Loại bài đăng<select value={type} onChange={(event) => setType(event.target.value)} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 bg-white px-4 outline-none focus:border-[#237596]"><option value="LOST">Tìm đồ</option><option value="FOUND">Trả đồ</option></select></label>
           <CategorySelect value={categoryId} onChange={setCategoryId} />
-          <div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium">Địa điểm<input name="location" value={form.location} onChange={change} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label><label className="block text-sm font-medium">Thời gian<input name="eventTime" type="datetime-local" value={form.eventTime} onChange={change} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label></div>
-          <label className="block text-sm font-medium">Thông tin liên hệ<input name="contactInfo" value={form.contactInfo} onChange={change} maxLength={255} placeholder="Ví dụ: 0900 000 000" className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label>
-          <label className="block text-sm font-medium">Mô tả<textarea name="description" value={form.description} onChange={change} className="mt-2 min-h-24 w-full resize-y rounded-[18px] border border-slate-300 p-4 outline-none focus:border-[#237596]" /></label>
+          <div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium">Địa điểm<input name="location" value={form.location} onChange={change} maxLength={900} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label><label className="block text-sm font-medium">Thời gian<input name="eventTime" type="datetime-local" value={form.eventTime} onChange={change} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label></div>
+          <label className="block text-sm font-medium">Thông tin liên hệ<input name="contactInfo" value={form.contactInfo} onChange={change} maxLength={900} placeholder="Ví dụ: 0900 000 000" className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596]" /></label>
+          <label className="block text-sm font-medium">Mô tả<textarea name="description" value={form.description} onChange={change} maxLength={900} className="mt-2 min-h-24 w-full resize-y rounded-[18px] border border-slate-300 p-4 outline-none focus:border-[#237596]" /></label>
           <ImageUploadField files={files} onChange={setFiles} />
         </div>
         {message && <p role="alert" className="mt-4 text-sm text-red-700">{message}</p>}

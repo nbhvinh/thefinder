@@ -10,7 +10,7 @@ CREATE TABLE users (
     id            BIGSERIAL PRIMARY KEY,
     email         VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    full_name     VARCHAR(255) NOT NULL,
+    full_name     VARCHAR(50) NOT NULL,
     phone         VARCHAR(20),
     messenger_url VARCHAR(500),
     zalo_url      VARCHAR(500),

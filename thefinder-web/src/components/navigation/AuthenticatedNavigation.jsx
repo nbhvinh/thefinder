@@ -13,6 +13,7 @@ import useScrollChromeVisibility from '../../hooks/useScrollChromeVisibility';
 import useBodyScrollLock from '../../hooks/useBodyScrollLock';
 import { getContactSuggestions } from '../../api/userApi';
 import { useTheme } from '../../context/ThemeContext';
+import { clearAuthValues, getAuthValue, setAuthValue } from '../../utils/authStorage';
 
 const links = [
   { label: 'Trang chủ', to: '/home', end: true },
@@ -30,8 +31,8 @@ const fallbackCategories = [
 
 export default function AuthenticatedNavigation() {
   const [query, setQuery] = useState('');
-  const [userName, setUserName] = useState(() => sessionStorage.getItem('thefinder-user-name') || 'Tài khoản');
-  const [userRole, setUserRole] = useState(() => sessionStorage.getItem('thefinder-user-role') || 'USER');
+  const [userName, setUserName] = useState(() => getAuthValue('thefinder-user-name') || 'Tài khoản');
+  const [userRole, setUserRole] = useState(() => getAuthValue('thefinder-user-role') || 'USER');
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isTagsOpen, setIsTagsOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
@@ -66,8 +67,8 @@ export default function AuthenticatedNavigation() {
       setUserRole(response.data.role || 'USER');
       if (response.data.themePreference) setTheme(response.data.themePreference);
       if (response.data.darkColor) setDarkColor(response.data.darkColor);
-      sessionStorage.setItem('thefinder-user-name', response.data.fullName);
-      sessionStorage.setItem('thefinder-user-role', response.data.role || 'USER');
+      setAuthValue('thefinder-user-name', response.data.fullName);
+      setAuthValue('thefinder-user-role', response.data.role || 'USER');
     }).catch(() => {});
     getCategories().then((data) => {
       if (Array.isArray(data) && data.length) setCategories(data);
@@ -83,7 +84,7 @@ export default function AuthenticatedNavigation() {
   }, []);
 
   useEffect(() => {
-    const updateName = (event) => setUserName(event.detail?.fullName || sessionStorage.getItem('thefinder-user-name') || 'Tài khoản');
+    const updateName = (event) => setUserName(event.detail?.fullName || getAuthValue('thefinder-user-name') || 'Tài khoản');
     window.addEventListener('thefinder:account-updated', updateName);
     return () => window.removeEventListener('thefinder:account-updated', updateName);
   }, []);
@@ -101,9 +102,7 @@ export default function AuthenticatedNavigation() {
 
   async function handleLogout() {
     try { await logout(); } catch { /* Vẫn xóa phiên cục bộ nếu backend không phản hồi. */ }
-    sessionStorage.removeItem('thefinder-authenticated');
-    sessionStorage.removeItem('thefinder-user-name');
-    sessionStorage.removeItem('thefinder-user-role');
+    clearAuthValues();
     navigate('/', { replace: true });
   }
 
@@ -181,7 +180,7 @@ export default function AuthenticatedNavigation() {
       <div className="mt-5 flex flex-col gap-1.5">
         <NavLink end to="/home" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><House /><span>Trang chính</span></NavLink>
         <div className="sidebar-action"><PenLine /><span>Đăng bài</span><CreatePostMenu isAuthenticated compact /></div>
-        <div ref={contactRef} className="relative"><button type="button" onClick={toggleContacts} aria-expanded={isContactOpen} className="sidebar-action w-full"><MessageCircle /><span>Liên hệ</span></button>{isContactOpen && <div className="fixed inset-x-4 top-1/2 z-50 max-h-[min(26rem,calc(100vh-2rem))] -translate-y-1/2 overflow-auto rounded-[18px] border border-[#1882ac] bg-white p-2 shadow-xl lg:absolute lg:inset-x-auto lg:left-full lg:top-0 lg:ml-3 lg:w-72 lg:translate-y-0"><p className="px-3 py-2 text-xs text-slate-500">Gợi ý từ các đơn đang được kiểm tra</p>{contactsLoading ? <p className="p-4 text-center text-sm text-slate-500">Đang tải...</p> : contacts.length ? contacts.map((contact) => <Link key={contact.id} to={`/users/${contact.id}`} onClick={() => { setIsContactOpen(false); setIsMobileMenuOpen(false); }} className="block rounded-[18px] px-3 py-3 hover:bg-[#eef8fc]"><span className="block font-semibold">{contact.fullName}</span><span className="mt-1 block truncate text-xs text-slate-500">{contact.phone || (contact.messengerUrl ? 'Messenger' : contact.zaloUrl ? 'Zalo' : 'Xem trang cá nhân')}</span></Link>) : <p className="p-4 text-center text-sm text-slate-500">Chưa có liên hệ được gợi ý.</p>}</div>}</div>
+        <div ref={contactRef} className="relative"><button type="button" onClick={toggleContacts} aria-expanded={isContactOpen} className="sidebar-action w-full"><MessageCircle /><span>Liên hệ</span></button>{isContactOpen && <div className="fixed inset-x-4 top-1/2 z-50 max-h-[min(26rem,calc(100vh-2rem))] -translate-y-1/2 overflow-auto rounded-[18px] border border-[#1882ac] bg-white p-2 shadow-xl lg:absolute lg:inset-x-auto lg:left-full lg:top-0 lg:ml-3 lg:w-72 lg:translate-y-0"><p className="px-3 py-2 text-xs text-slate-500">Gợi ý từ các đơn đang được kiểm tra</p>{contactsLoading ? <p className="p-4 text-center text-sm text-slate-500">Đang tải...</p> : contacts.length ? contacts.map((contact) => <Link key={contact.id} to={`/users/${contact.id}`} onClick={() => { setIsContactOpen(false); setIsMobileMenuOpen(false); }} className="block rounded-[18px] px-3 py-3 hover:bg-[#eef8fc]"><span className="block break-words font-semibold">{contact.fullName}</span><span className="mt-1 block truncate text-xs text-slate-500">{contact.phone || (contact.messengerUrl ? 'Messenger' : contact.zaloUrl ? 'Zalo' : 'Xem trang cá nhân')}</span></Link>) : <p className="p-4 text-center text-sm text-slate-500">Chưa có liên hệ được gợi ý.</p>}</div>}</div>
         <NavLink to="/claims/received" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><Inbox /><span>Các đơn nhận được</span></NavLink>
         <NavLink to="/claims/sent" onClick={() => setIsMobileMenuOpen(false)} className={({ isActive }) => `sidebar-action${isActive ? ' sidebar-action-active' : ''}`}><Send /><span>Các đơn đã gửi</span></NavLink>
         <NotificationCenter />
@@ -201,7 +200,7 @@ export default function AuthenticatedNavigation() {
 
       <div ref={accountRef} className={`relative ${userRole === 'ADMIN' ? '' : 'mt-auto'}`}>
         {isAccountOpen && <div className="absolute bottom-0 left-full z-50 ml-2 w-[calc(100vw-292px)] max-w-60 rounded-[18px] border border-[#1882ac] bg-white p-1 shadow-lg lg:ml-3 lg:w-60"><NavLink to="/settings" onClick={() => { setIsAccountOpen(false); setIsMobileMenuOpen(false); }} className="flex items-center gap-2 rounded-[18px] px-4 py-2.5 text-left text-sm hover:bg-[#eef8fc] hover:text-[#237596]"><Settings className="h-4 w-4" />Cài đặt tài khoản</NavLink><button type="button" onClick={handleLogout} className="mt-1 block w-full rounded-[18px] px-4 py-2.5 text-left text-sm text-red-700 hover:bg-red-50">Đăng xuất</button></div>}
-        <button type="button" onClick={() => setIsAccountOpen((open) => !open)} aria-expanded={isAccountOpen} className="flex h-12 w-full items-center gap-3 rounded-full border border-[#1882ac] bg-white px-4 text-left text-[15px] text-black hover:bg-[#eef8fc]"><UserRound className="h-5 w-5 shrink-0 text-[#237596]" /><span className="truncate">{userName}</span></button>
+        <button type="button" onClick={() => setIsAccountOpen((open) => !open)} aria-expanded={isAccountOpen} className="flex min-h-12 w-full items-center gap-3 rounded-[18px] border border-[#1882ac] bg-white px-4 py-2 text-left text-[15px] text-black hover:bg-[#eef8fc]"><UserRound className="h-5 w-5 shrink-0 text-[#237596]" /><span className="min-w-0 flex-1 break-words">{userName}</span></button>
       </div>
     </aside>
     </>, document.body)}

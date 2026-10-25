@@ -155,6 +155,12 @@ Nếu database được tạo trước khi có tính năng tùy chọn liên h�
 psql -U postgres -d thefinder -f "thefinder backend/database-migrations/phase5_contact_preferences.sql"
 ```
 
+Để giới hạn tên người dùng ở 50 ký tự và cắt phần dư của các tên hiện có, chạy migration một lần:
+
+```bash
+psql -U postgres -d thefinder -f "thefinder backend/database-migrations/phase6_user_name_limit.sql"
+```
+
 ### 3. Chạy frontend
 
 Mở terminal khác tại thư mục gốc:

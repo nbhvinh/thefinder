@@ -17,6 +17,7 @@ public class RegisterRequest {
     private String password;
 
     @NotBlank
+    @Size(max = 50, message = "Tên người dùng không được vượt quá 50 ký tự")
     private String fullName;
 
     private String phone;

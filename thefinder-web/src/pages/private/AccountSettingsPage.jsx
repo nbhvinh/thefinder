@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useBlocker, useNavigate } from 'react-router-dom';
 import { KeyRound, Save, UserRound } from 'lucide-react';
 import AuthenticatedNavigation from '../../components/navigation/AuthenticatedNavigation';
 import { getCurrentUser, updateAccount } from '../../api/authApi';
 import { useTheme, DEFAULT_DARK_COLOR } from '../../context/ThemeContext';
+import { setAuthValue } from '../../utils/authStorage';
 
 function PrivacySwitch({ checked, onChange, label, disabled }) {
-  return <label className="flex items-center justify-between gap-4 rounded-[18px] border border-slate-200 bg-slate-50/70 px-4 py-3"><span className="text-sm font-medium">{label}</span><input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="peer sr-only" /><span aria-hidden="true" className="relative h-7 w-12 shrink-0 rounded-full border border-white/80 bg-slate-300/80 shadow-inner transition duration-300 after:absolute after:left-1 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-300 peer-checked:bg-[#237596] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#237596] peer-focus-visible:ring-offset-2 peer-disabled:opacity-50" /></label>;
+  return <label className="privacy-switch flex items-center justify-between gap-4 rounded-[18px] border border-slate-200 bg-slate-50/70 px-4 py-3"><span className="text-sm font-medium">{label}</span><input type="checkbox" checked={checked} onChange={onChange} disabled={disabled} className="peer sr-only" /><span aria-hidden="true" className="privacy-switch-track relative h-7 w-12 shrink-0 rounded-full border border-white/80 bg-slate-300/80 shadow-inner transition duration-300 after:absolute after:left-1 after:top-1/2 after:h-5 after:w-5 after:-translate-y-1/2 after:rounded-full after:bg-white after:shadow-md after:transition-transform after:duration-300 peer-checked:bg-[#237596] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#237596] peer-focus-visible:ring-offset-2 peer-disabled:opacity-50" /></label>;
 }
 
 function errorMessage(error) {
@@ -25,11 +26,11 @@ export default function AccountSettingsPage() {
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
   const [savedSnapshot, setSavedSnapshot] = useState(null);
-  const [confirmLeave, setConfirmLeave] = useState(false);
+  const formRef = useRef(null);
   const navigate = useNavigate();
   const snapshot = JSON.stringify({ form, theme, darkColor });
   const dirty = savedSnapshot !== null && snapshot !== savedSnapshot;
-  const blocker = useBlocker(dirty && !saving);
+  const blocker = useBlocker(dirty);
 
   useEffect(() => {
     let active = true;
@@ -78,10 +79,13 @@ export default function AccountSettingsPage() {
       setForm((current) => ({ ...current, fullName: data.fullName, phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo), currentPassword: '', newPassword: '', confirmPassword: '' }));
       const savedForm = { fullName: data.fullName, phone: data.phone || '', messengerUrl: data.messengerUrl || '', zaloUrl: data.zaloUrl || '', showPhone: Boolean(data.showPhone), showMessenger: Boolean(data.showMessenger), showZalo: Boolean(data.showZalo), currentPassword: '', newPassword: '', confirmPassword: '' };
       setSavedSnapshot(JSON.stringify({ form: savedForm, theme: data.themePreference || theme, darkColor: data.darkColor || darkColor }));
-      sessionStorage.setItem('thefinder-user-name', data.fullName);
+      setAuthValue('thefinder-user-name', data.fullName);
       window.dispatchEvent(new CustomEvent('thefinder:account-updated', { detail: data }));
       setSuccess(true);
       setMessage('Đã cập nhật tài khoản thành công.');
+      if (blocker.state === 'blocked') {
+        blocker.proceed();
+      }
     } catch (error) {
       setMessage(errorMessage(error));
     } finally {
@@ -89,12 +93,7 @@ export default function AccountSettingsPage() {
     }
   }
 
-  useEffect(() => {
-    if (blocker.state === 'blocked') setConfirmLeave(true);
-  }, [blocker.state]);
-
   function leaveSettings() {
-    setConfirmLeave(false);
     if (blocker.state === 'blocked') blocker.proceed();
     else navigate(-1);
   }
@@ -108,7 +107,7 @@ export default function AccountSettingsPage() {
         <p className="mt-2 text-slate-600">Cập nhật thông tin cá nhân hoặc đổi mật khẩu đăng nhập.</p>
       </header>
 
-      <form onSubmit={submit} className="mt-7 space-y-6">
+      <form ref={formRef} onSubmit={submit} className="mt-7 space-y-6">
         <section className="rounded-[18px] border border-[#9fc5d4] bg-white p-5 sm:p-7" aria-labelledby="appearance-title">
           <h2 id="appearance-title" className="text-xl font-semibold">Giao diện</h2>
           <p className="mt-2 text-sm text-slate-500">Chọn giao diện cho toàn bộ trang web.</p>
@@ -127,7 +126,7 @@ export default function AccountSettingsPage() {
         <section className="rounded-[18px] border border-[#9fc5d4] bg-white p-5 sm:p-7" aria-labelledby="personal-info-title">
           <h2 id="personal-info-title" className="flex items-center gap-2 text-xl font-semibold"><UserRound className="text-[#237596]" />Thông tin cá nhân</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <label className="block text-sm font-medium">Tên người dùng<input name="fullName" value={form.fullName} onChange={change} disabled={loading || saving} maxLength={255} required className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596] disabled:bg-slate-100" /></label>
+            <label className="block text-sm font-medium">Tên người dùng<input name="fullName" value={form.fullName} onChange={change} disabled={loading || saving} maxLength={50} required className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596] disabled:bg-slate-100" /></label>
             <label className="block text-sm font-medium">Số điện thoại<input name="phone" type="tel" value={form.phone} onChange={change} disabled={loading || saving} maxLength={20} placeholder="Không bắt buộc" className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596] disabled:bg-slate-100" /></label>
             <label className="block text-sm font-medium">URL Messenger<input name="messengerUrl" type="url" value={form.messengerUrl} onChange={change} disabled={loading || saving} maxLength={500} placeholder="https://m.me/ten-cua-ban" className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596] disabled:bg-slate-100" /></label>
             <label className="block text-sm font-medium">URL Zalo<input name="zaloUrl" type="url" value={form.zaloUrl} onChange={change} disabled={loading || saving} maxLength={500} placeholder="https://zalo.me/..." className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 px-4 outline-none focus:border-[#237596] disabled:bg-slate-100" /></label>
@@ -152,6 +151,6 @@ export default function AccountSettingsPage() {
         <button type="submit" disabled={loading || saving} className="ml-auto flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#237596] px-7 font-semibold text-white disabled:opacity-50 sm:w-auto"><Save className="h-5 w-5" />{saving ? 'Đang lưu...' : 'Lưu thay đổi'}</button>
       </form>
     </main>
-    {confirmLeave && createPortal(<div className="fixed inset-0 z-[110] grid place-items-center bg-black/35 p-4"><section role="dialog" aria-modal="true" className="w-full max-w-md rounded-[18px] border border-[#237596] bg-white p-6 text-center shadow-2xl"><h2 className="text-2xl font-semibold">Lưu cài đặt?</h2><p className="mt-3 text-slate-600">Bạn có thay đổi chưa lưu. Bạn muốn lưu trước khi thoát không?</p><div className="mt-7 grid gap-3 sm:grid-cols-3"><button type="button" onClick={() => { setConfirmLeave(false); blocker.reset(); }} className="h-11 rounded-full border border-[#237596]">Ở lại</button><button type="button" onClick={leaveSettings} className="h-11 rounded-full bg-[#fb5353] text-white">Thoát</button><button type="button" onClick={async () => { await document.querySelector('form')?.requestSubmit(); }} className="h-11 rounded-full bg-[#237596] text-white">Lưu</button></div></section></div>, document.body)}
+    {blocker.state === 'blocked' && createPortal(<div className="fixed inset-0 z-[110] grid place-items-center bg-black/35 p-4"><section role="dialog" aria-modal="true" className="w-full max-w-md rounded-[18px] border border-[#237596] bg-white p-6 text-center shadow-2xl"><h2 className="text-2xl font-semibold">Lưu cài đặt?</h2><p className="mt-3 text-slate-600">Bạn có thay đổi chưa lưu. Bạn muốn lưu trước khi thoát không?</p><div className="mt-7 grid gap-3 sm:grid-cols-3"><button type="button" onClick={() => blocker.reset()} disabled={saving} className="h-11 rounded-full border border-[#237596] disabled:opacity-50">Ở lại</button><button type="button" onClick={leaveSettings} disabled={saving} className="h-11 rounded-full bg-[#fb5353] text-white disabled:opacity-50">Thoát</button><button type="button" onClick={() => formRef.current?.requestSubmit()} disabled={loading || saving} className="h-11 rounded-full bg-[#237596] text-white disabled:opacity-50">{saving ? 'Đang lưu...' : 'Lưu'}</button></div></section></div>, document.body)}
   </div>;
 }

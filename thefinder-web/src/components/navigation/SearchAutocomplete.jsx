@@ -148,7 +148,7 @@ export default function SearchAutocomplete({ id, value, onChange, onSearch, onFo
           {suggestions.map((suggestion, index) => (
             <li key={`${suggestion.userId ? `user-${suggestion.userId}` : `${suggestion.value}-${suggestion.categoryId ?? 'text'}`}`} id={`${id}-suggestion-${index}`} role="option" aria-selected={index === activeIndex}>
               <button type="button" onPointerDown={(event) => { event.preventDefault(); selectSuggestion(suggestion); }} className={`block w-full rounded-[18px] px-4 py-2.5 text-left text-sm ${index === activeIndex ? 'bg-[#eef8fc] text-[#237596]' : 'text-black hover:bg-[#eef8fc]'}`}>
-                <span className="flex items-center justify-between gap-3"><span className="truncate">{suggestion.label}</span>{suggestion.kind && <span className="shrink-0 text-xs text-[#237596]">{suggestion.kind}</span>}</span>
+                <span className="flex items-center justify-between gap-3"><span className="min-w-0 flex-1 break-words">{suggestion.label}</span>{suggestion.kind && <span className="shrink-0 text-xs text-[#237596]">{suggestion.kind}</span>}</span>
               </button>
             </li>
           ))}

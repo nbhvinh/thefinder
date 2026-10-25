@@ -50,6 +50,18 @@
   background-color: #185d79 !important;
 }
 
+[data-theme="dark"] .public-home-page {
+  background-color: var(--dark-background) !important;
+}
+
+[data-theme="dark"] .privacy-switch input:not(:checked) + .privacy-switch-track {
+  background-color: #64748b !important;
+}
+
+[data-theme="dark"] .privacy-switch input:checked + .privacy-switch-track {
+  background-color: #237596 !important;
+}
+
 [data-theme="dark"] header.sticky,
 [data-theme="dark"] nav.desktop-primary-navigation,
 [data-theme="dark"] aside.authenticated-sidebar,

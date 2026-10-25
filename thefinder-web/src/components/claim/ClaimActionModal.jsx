@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { resolveApiAssetUrl } from '../../config/api';
 
 function formatDate(value) {
@@ -21,7 +22,7 @@ export default function ClaimActionModal({ dialog, busy, onCancel, onConfirm }) 
   const { claim, post, title, description, actionLabel, destructive, showDetails } = dialog;
   const postImage = post?.images?.[0]?.url;
 
-  return <div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-black/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
+  return createPortal(<div className="fixed inset-0 z-[90] grid place-items-center overflow-y-auto bg-black/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
     <section role="dialog" aria-modal="true" aria-labelledby="claim-dialog-title" className="my-auto w-full max-w-3xl rounded-[18px] border border-[#237596] bg-white p-6 shadow-2xl sm:p-9">
       <h2 id="claim-dialog-title" className="text-center text-3xl font-semibold text-[#14252c] sm:text-4xl">{title}</h2>
       <p className="mx-auto mt-3 max-w-2xl text-center text-slate-600">{description}</p>
@@ -47,5 +48,5 @@ export default function ClaimActionModal({ dialog, busy, onCancel, onConfirm }) 
         <button disabled={busy} type="button" onClick={onConfirm} className={`h-12 rounded-full text-white transition-opacity disabled:opacity-50 ${destructive ? 'bg-[#fb5353]' : 'bg-[#287f9f]'}`}>{busy ? 'Đang xử lý...' : actionLabel}</button>
       </div>
     </section>
-  </div>;
+  </div>, document.body);
 }

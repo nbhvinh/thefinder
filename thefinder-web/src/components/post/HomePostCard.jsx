@@ -45,7 +45,7 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
   const previewPanelRef = useRef(null);
   const reportRef = useRef(null);
   const suppressImageClickUntilRef = useRef(0);
-  useBodyScrollLock(Boolean(imagePreview));
+  useBodyScrollLock(Boolean(imagePreview || isReportFormOpen));
 
   useEffect(() => {
     function closeReport(event) {
@@ -183,9 +183,9 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
             <h2 className="inline break-words text-[26px] text-black">{post.title}</h2>
           </div>
         </div>
-        <section className={`post-details-panel mt-2.5 rounded-[18px] border border-slate-300 bg-[#d9d9d9] p-3.5 transition-all ${isExpanded ? 'min-h-[140px]' : 'h-[140px] overflow-hidden'}`} aria-label="Nội dung bài đăng">
-          <p className="text-sm font-medium text-[#1882ac]">#{post.tag || 'Chưa phân loại'}</p>
-          <div className={`mt-2 space-y-0.5 text-sm text-black ${isExpanded ? '' : 'line-clamp-4'}`}>
+        <section className={`post-details-panel mt-2.5 min-w-0 rounded-[18px] border border-slate-300 bg-[#d9d9d9] p-3.5 transition-all ${isExpanded ? 'min-h-[140px]' : 'h-[140px] overflow-hidden'}`} aria-label="Nội dung bài đăng">
+          <p className="break-words text-sm font-medium text-[#1882ac]">#{post.tag || 'Chưa phân loại'}</p>
+          <div className={`mt-2 min-w-0 break-words space-y-0.5 text-sm text-black ${isExpanded ? '' : 'line-clamp-4'}`}>
             <p><span className="font-semibold">Mô tả: </span>{post.description || 'Chưa cung cấp'}</p>
             <p><span className="font-semibold">Địa điểm: </span>{post.location || 'Chưa cung cấp'}</p>
             <p><span className="font-semibold">Thời gian: </span>{formatDateTime(post.eventTime)}</p>
@@ -194,7 +194,7 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
         </section>
         <button type="button" aria-expanded={isExpanded} onClick={() => setIsExpanded((expanded) => !expanded)} className="mt-1 shrink-0 self-end text-[15px] text-[#237596]">{isExpanded ? 'Rút gọn' : 'Xem thêm ...'}</button>
         <div className="mt-auto">
-          {post.authorId ? <Link to={`/users/${post.authorId}`} className="text-base font-medium text-black hover:text-[#237596] hover:underline">{post.author || 'Ẩn danh'}</Link> : <p className="text-base text-black">Ẩn danh</p>}
+          {post.authorId ? <Link to={`/users/${post.authorId}`} className="break-words text-base font-medium text-black hover:text-[#237596] hover:underline">{post.author || 'Ẩn danh'}</Link> : <p className="text-base text-black">Ẩn danh</p>}
           <div className="mt-1 flex flex-col items-start justify-between gap-4 min-[420px]:flex-row">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-1.5 text-base"><span>Trạng thái:</span><span className="text-[#237596]">{post.status}</span></div>
@@ -221,7 +221,7 @@ export default function HomePostCard({ post, onFound, claimStatus, isOwner }) {
           </>}
         </section>
       </div>, document.body)}
-      {isReportFormOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby={`report-title-${post.id}`}><form onSubmit={submitReport} className="w-full max-w-md rounded-[18px] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><h2 id={`report-title-${post.id}`} className="text-2xl font-semibold text-black">Báo cáo bài viết</h2><p className="mt-1 line-clamp-2 text-sm text-slate-500">{post.title}</p></div><button type="button" onClick={() => setIsReportFormOpen(false)} aria-label="Đóng" className="text-slate-500 hover:text-red-600"><XCircle /></button></div><label className="mt-5 block text-sm font-medium text-black">Lý do<select value={reportReason} onChange={(event) => setReportReason(event.target.value)} disabled={reported} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 bg-white px-3 outline-none focus:border-[#237596]">{reportReasons.map((reason) => <option key={reason.value} value={reason.value}>{reason.label}</option>)}</select></label><label className="mt-4 block text-sm font-medium text-black">Giải thích thêm (không bắt buộc)<textarea value={reportDetail} onChange={(event) => setReportDetail(event.target.value)} disabled={reported} maxLength={1000} className="mt-2 min-h-28 w-full resize-y rounded-[18px] border border-slate-300 p-3 outline-none focus:border-[#237596]" /></label>{reportMessage && <p role="status" className={`mt-3 text-sm ${reported ? 'text-emerald-700' : 'text-red-700'}`}>{reportMessage}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setIsReportFormOpen(false)} className="h-10 rounded-full border border-[#237596] px-5">{reported ? 'Đóng' : 'Hủy'}</button>{!reported && <button disabled={reporting} type="submit" className="h-10 rounded-full bg-red-600 px-5 text-white disabled:opacity-60">{reporting ? 'Đang gửi...' : 'Gửi báo cáo'}</button>}</div></form></div>}
+      {isReportFormOpen && createPortal(<div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto bg-black/40 p-4" role="dialog" aria-modal="true" aria-labelledby={`report-title-${post.id}`}><form onSubmit={submitReport} className="my-auto w-full max-w-md rounded-[18px] bg-white p-6 shadow-2xl"><div className="flex items-start justify-between gap-4"><div><h2 id={`report-title-${post.id}`} className="text-2xl font-semibold text-black">Báo cáo bài viết</h2><p className="mt-1 line-clamp-2 text-sm text-slate-500">{post.title}</p></div><button type="button" onClick={() => setIsReportFormOpen(false)} aria-label="Đóng" className="text-slate-500 hover:text-red-600"><XCircle /></button></div><label className="mt-5 block text-sm font-medium text-black">Lý do<select value={reportReason} onChange={(event) => setReportReason(event.target.value)} disabled={reported} className="mt-2 h-11 w-full rounded-[18px] border border-slate-300 bg-white px-3 outline-none focus:border-[#237596]">{reportReasons.map((reason) => <option key={reason.value} value={reason.value}>{reason.label}</option>)}</select></label><label className="mt-4 block text-sm font-medium text-black">Giải thích thêm (không bắt buộc)<textarea value={reportDetail} onChange={(event) => setReportDetail(event.target.value)} disabled={reported} maxLength={1000} className="mt-2 min-h-28 w-full resize-y rounded-[18px] border border-slate-300 p-3 outline-none focus:border-[#237596]" /></label>{reportMessage && <p role="status" className={`mt-3 text-sm ${reported ? 'text-emerald-700' : 'text-red-700'}`}>{reportMessage}</p>}<div className="mt-6 flex justify-end gap-3"><button type="button" onClick={() => setIsReportFormOpen(false)} className="h-10 rounded-full border border-[#237596] px-5">{reported ? 'Đóng' : 'Hủy'}</button>{!reported && <button disabled={reporting} type="submit" className="h-10 rounded-full bg-red-600 px-5 text-white disabled:opacity-60">{reporting ? 'Đang gửi...' : 'Gửi báo cáo'}</button>}</div></form></div>, document.body)}
     </article>
   );
 }

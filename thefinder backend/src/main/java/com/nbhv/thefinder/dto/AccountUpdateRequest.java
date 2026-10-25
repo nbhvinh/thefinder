@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class AccountUpdateRequest {
     @NotBlank(message = "Tên người dùng không được để trống")
-    @Size(max = 255, message = "Tên người dùng không được vượt quá 255 ký tự")
+    @Size(max = 50, message = "Tên người dùng không được vượt quá 50 ký tự")
     private String fullName;
 
     @Size(max = 20, message = "Số điện thoại không được vượt quá 20 ký tự")

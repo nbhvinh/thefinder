@@ -122,7 +122,7 @@ export default function SwipeablePostImage({ ref, urls, index, title, contain = 
     }}>
       {(urls.length > 1 ? [-1, 0, 1] : [0]).map((slot) => {
         const imageIndex = (index + slot + urls.length) % urls.length;
-        return <img key={slot} src={urls[imageIndex]} draggable={false}
+        return <img key={slot} src={urls[imageIndex]} loading="lazy" decoding="async" draggable={false}
           alt={slot === 0 ? `Ảnh ${index + 1} của bài đăng ${title}` : ''}
           aria-hidden={slot !== 0 || undefined}
           onError={slot === 0 ? onError : undefined}
